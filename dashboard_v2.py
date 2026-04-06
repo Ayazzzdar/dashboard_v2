@@ -1200,13 +1200,15 @@ def main():
             # Selection controls
             col1, col2 = st.columns([1, 3])
             with col1:
-                if st.button("✓ Select All"):
+                if st.button("✓ Select All", key="select_all_btn"):
                     st.session_state.selected_orders = [o['name'] for o in filtered]
                     st.rerun()
             with col2:
-                if st.button("✗ Deselect All"):
+                if st.button("✗ Deselect All", key="deselect_all_btn"):
                     st.session_state.selected_orders = []
                     st.rerun()
+            
+            st.markdown(f"**Selected: {len(st.session_state.selected_orders)} orders**")
             
             # Order list
             for order in filtered[:st.session_state.settings.get('items_per_page', 20)]:
@@ -1240,8 +1242,6 @@ def main():
                 with col4:
                     order_date = datetime.fromisoformat(order['created_at'].replace('Z', '+00:00'))
                     st.write(f"📅 {order_date.strftime('%b %d, %Y')}")
-            
-            st.markdown(f"**Selected: {len(st.session_state.selected_orders)} orders**")
         
         else:
             st.info("Click 'Refresh Orders' to load unfulfilled orders")
