@@ -1,0 +1,1374 @@
+#!/usr/bin/env python3
+"""
+The Day Archive - Dashboard V2
+Complete settings system with customizable themes, notifications, and advanced features
+"""
+
+import streamlit as st
+import pandas as pd
+import requests
+import json
+import time
+from datetime import datetime, timedelta
+from typing import Dict, List, Optional
+import os
+from pathlib import Path
+from settings_manager_v2 import (
+    save_settings, load_settings, export_settings, 
+    import_settings, reset_settings, get_color_presets, DEFAULT_SETTINGS
+)
+
+# Page configuration
+st.set_page_config(
+    page_title="The Day Archive - Dashboard V2",
+    page_icon="📅",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
+
+# ============================================================================
+# CUSTOM THEME APPLICATION
+# ============================================================================
+
+def apply_custom_theme(settings):
+    """Apply custom color theme to dashboard"""
+    st.markdown(f"""
+    <style>
+        /* Main app background */
+        .stApp {{
+            background-color: {settings['background_color']};
+            color: {settings['text_color']};
+        }}
+        
+        /* Sidebar styling */
+        [data-testid="stSidebar"] {{
+            background-color: {settings['sidebar_color']};
+        }}
+        
+        [data-testid="stSidebar"] * {{
+            color: {settings['text_color']} !important;
+        }}
+        
+        /* Button styling */
+        .stButton>button {{
+            background-color: {settings['primary_color']};
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 0.5rem 1.5rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }}
+        
+        .stButton>button:hover {{
+            opacity: 0.85;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+        }}
+        
+        /* Progress bar */
+        .stProgress > div > div > div {{
+            background-color: {settings['primary_color']};
+        }}
+        
+        /* Headers */
+        h1, h2, h3, h4, h5, h6 {{
+            color: {settings['text_color']} !important;
+        }}
+        
+        /* Input fields */
+        .stTextInput>div>div>input,
+        .stSelectbox>div>div>select,
+        .stNumberInput>div>div>input {{
+            background-color: {settings['sidebar_color']};
+            color: {settings['text_color']};
+            border: 1px solid {settings['accent_color']};
+        }}
+        
+        /* Tabs */
+        .stTabs [data-baseweb="tab-list"] {{
+            background-color: {settings['sidebar_color']};
+        }}
+        
+        .stTabs [data-baseweb="tab"] {{
+            color: {settings['text_color']};
+        }}
+        
+        .stTabs [aria-selected="true"] {{
+            background-color: {settings['primary_color']};
+            color: white;
+        }}
+        
+        /* Checkboxes */
+        .stCheckbox {{
+            color: {settings['text_color']};
+        }}
+        
+        /* Metrics */
+        [data-testid="stMetricValue"] {{
+            color: {settings['primary_color']};
+        }}
+        
+        /* Expander */
+        .streamlit-expanderHeader {{
+            background-color: {settings['sidebar_color']};
+            color: {settings['text_color']};
+        }}
+        
+        /* Success/Error/Warning messages */
+        .stSuccess {{
+            background-color: rgba(34, 197, 94, 0.1);
+            border-left: 4px solid #22C55E;
+        }}
+        
+        .stError {{
+            background-color: rgba(239, 68, 68, 0.1);
+            border-left: 4px solid #EF4444;
+        }}
+        
+        .stWarning {{
+            background-color: rgba(251, 191, 36, 0.1);
+            border-left: 4px solid #FBBF24;
+        }}
+        
+        /* Font size adjustments */
+        {"" if settings.get('font_size') == 'Medium' else 
+         "body { font-size: 14px; }" if settings.get('font_size') == 'Small' else
+         "body { font-size: 18px; }" if settings.get('font_size') == 'Large' else ""}
+        
+        /* Compact mode */
+        {".stBlock { padding: 0.5rem 0; }" if settings.get('compact_mode') else ""}
+    </style>
+    """, unsafe_allow_html=True)
+
+# ============================================================================
+# SESSION STATE INITIALIZATION
+# ============================================================================
+
+# Load settings
+if 'settings' not in st.session_state:
+    st.session_state.settings = load_settings()
+
+if 'processing' not in st.session_state:
+    st.session_state.processing = False
+if 'processed_orders' not in st.session_state:
+    st.session_state.processed_orders = []
+if 'current_order_index' not in st.session_state:
+    st.session_state.current_order_index = 0
+if 'processing_log' not in st.session_state:
+    st.session_state.processing_log = []
+if 'error_log' not in st.session_state:
+    st.session_state.error_log = []
+if 'total_processed_today' not in st.session_state:
+    st.session_state.total_processed_today = 0
+if 'selected_orders' not in st.session_state:
+    st.session_state.selected_orders = []
+if 'api_credentials' not in st.session_state:
+    st.session_state.api_credentials = {
+        'shopify_store': '',
+        'shopify_token': '',
+        'claude_api_key': ''
+    }
+
+# Apply theme
+apply_custom_theme(st.session_state.settings)
+
+# ============================================================================
+# SETTINGS PAGE FUNCTION
+# ============================================================================
+
+def render_settings_page():
+    """Render the complete settings page with all options"""
+    st.title("⚙️ Dashboard Settings")
+    st.markdown("Customize your dashboard experience")
+    st.markdown("---")
+    
+    # Create tabs for different setting categories
+    tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9 = st.tabs([
+        "🎨 Brand Colors",
+        "🖥️ Display",
+        "⚡ Processing",
+        "🔔 Notifications",
+        "📄 CSV Export",
+        "⏱️ API Limits",
+        "📐 Layout",
+        "💾 Backup",
+        "🔧 Advanced"
+    ])
+    
+    settings = st.session_state.settings
+    
+    # ========================================================================
+    # TAB 1: BRAND COLORS
+    # ========================================================================
+    with tab1:
+        st.subheader("🎨 Customize Brand Colors")
+        st.markdown("Personalize your dashboard theme")
+        
+        col1, col2 = st.columns([2, 1])
+        
+        with col1:
+            st.markdown("#### Choose Colors")
+            
+            # Color pickers
+            primary = st.color_picker(
+                "Primary Color (buttons, links)",
+                value=settings['primary_color'],
+                help="Main brand color for interactive elements"
+            )
+            
+            accent = st.color_picker(
+                "Accent Color (highlights)",
+                value=settings['accent_color'],
+                help="Secondary color for borders and highlights"
+            )
+            
+            background = st.color_picker(
+                "Background Color",
+                value=settings['background_color'],
+                help="Main background color"
+            )
+            
+            text = st.color_picker(
+                "Text Color",
+                value=settings['text_color'],
+                help="Primary text color"
+            )
+            
+            sidebar = st.color_picker(
+                "Sidebar Color",
+                value=settings['sidebar_color'],
+                help="Left sidebar background color"
+            )
+            
+            # Update settings
+            settings['primary_color'] = primary
+            settings['accent_color'] = accent
+            settings['background_color'] = background
+            settings['text_color'] = text
+            settings['sidebar_color'] = sidebar
+        
+        with col2:
+            st.markdown("#### Quick Presets")
+            
+            presets = get_color_presets()
+            
+            for preset_name, preset_colors in presets.items():
+                if st.button(preset_name, key=f"preset_{preset_name}"):
+                    for key, value in preset_colors.items():
+                        settings[key] = value
+                    st.success(f"Applied {preset_name} theme!")
+                    st.rerun()
+        
+        st.markdown("---")
+        
+        # Preview section
+        st.markdown("#### 🔍 Live Preview")
+        
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            st.button("Sample Button", key="preview_btn")
+        with col2:
+            st.metric("Sample Metric", "123")
+        with col3:
+            st.progress(0.7)
+        
+        st.info("Preview of your custom theme")
+    
+    # ========================================================================
+    # TAB 2: DISPLAY PREFERENCES
+    # ========================================================================
+    with tab2:
+        st.subheader("🖥️ Display Preferences")
+        
+        font_size = st.radio(
+            "Font Size",
+            ["Small", "Medium", "Large"],
+            index=["Small", "Medium", "Large"].index(settings.get('font_size', 'Medium')),
+            horizontal=True
+        )
+        settings['font_size'] = font_size
+        
+        compact_mode = st.toggle(
+            "Compact Mode",
+            value=settings.get('compact_mode', False),
+            help="Reduce spacing for more compact layout"
+        )
+        settings['compact_mode'] = compact_mode
+        
+        show_thumbnails = st.toggle(
+            "Show Order Thumbnails",
+            value=settings.get('show_thumbnails', True),
+            help="Display preview images for orders"
+        )
+        settings['show_thumbnails'] = show_thumbnails
+        
+        dark_mode = st.toggle(
+            "Dark Mode",
+            value=settings.get('dark_mode', True),
+            help="Use dark theme colors"
+        )
+        settings['dark_mode'] = dark_mode
+    
+    # ========================================================================
+    # TAB 3: PROCESSING DEFAULTS
+    # ========================================================================
+    with tab3:
+        st.subheader("⚡ Processing Defaults")
+        
+        batch_size = st.number_input(
+            "Default Batch Size",
+            min_value=1,
+            max_value=100,
+            value=settings.get('default_batch_size', 5),
+            help="Number of orders to process at once"
+        )
+        settings['default_batch_size'] = batch_size
+        
+        auto_refresh = st.number_input(
+            "Auto-Refresh Orders (minutes)",
+            min_value=0,
+            max_value=60,
+            value=settings.get('auto_refresh_minutes', 0),
+            help="Automatically refresh orders every X minutes (0 = disabled)"
+        )
+        settings['auto_refresh_minutes'] = auto_refresh
+        
+        date_filter = st.selectbox(
+            "Default Date Filter",
+            ["All Orders", "Today", "Yesterday", "Last 7 Days", "Last 30 Days"],
+            index=["All Orders", "Today", "Yesterday", "Last 7 Days", "Last 30 Days"].index(
+                settings.get('default_date_filter', 'All Orders')
+            )
+        )
+        settings['default_date_filter'] = date_filter
+        
+        auto_select = st.toggle(
+            "Auto-Select New Orders",
+            value=settings.get('auto_select_new', False),
+            help="Automatically select newly fetched orders"
+        )
+        settings['auto_select_new'] = auto_select
+    
+    # ========================================================================
+    # TAB 4: NOTIFICATIONS
+    # ========================================================================
+    with tab4:
+        st.subheader("🔔 Notification Settings")
+        
+        desktop_notif = st.toggle(
+            "Desktop Notifications",
+            value=settings.get('desktop_notifications', False),
+            help="Show browser notifications when processing completes"
+        )
+        settings['desktop_notifications'] = desktop_notif
+        
+        sound_alert = st.toggle(
+            "Sound Alert",
+            value=settings.get('sound_alert', False),
+            help="Play sound when processing completes"
+        )
+        settings['sound_alert'] = sound_alert
+        
+        email_notif = st.toggle(
+            "Email Notifications",
+            value=settings.get('email_notifications', False),
+            help="Send email when processing completes"
+        )
+        settings['email_notifications'] = email_notif
+        
+        if email_notif:
+            email = st.text_input(
+                "Notification Email",
+                value=settings.get('notification_email', ''),
+                placeholder="your@email.com"
+            )
+            settings['notification_email'] = email
+        
+        slack_webhook = st.text_input(
+            "Slack Webhook URL (optional)",
+            value=settings.get('slack_webhook', ''),
+            type="password",
+            help="Post notifications to Slack"
+        )
+        settings['slack_webhook'] = slack_webhook
+    
+    # ========================================================================
+    # TAB 5: CSV EXPORT OPTIONS
+    # ========================================================================
+    with tab5:
+        st.subheader("📄 CSV Export Options")
+        
+        filename_format = st.text_input(
+            "Filename Format",
+            value=settings.get('filename_format', 'orders_{date}_{time}'),
+            help="Use {date} and {time} placeholders"
+        )
+        settings['filename_format'] = filename_format
+        
+        st.caption("Example: orders_2026-04-06_14-30-45.csv")
+        
+        save_location = st.text_input(
+            "Auto-Save Location",
+            value=settings.get('auto_save_location', '.'),
+            help="Folder path to save CSVs"
+        )
+        settings['auto_save_location'] = save_location
+        
+        include_notes = st.toggle(
+            "Include Order Notes",
+            value=settings.get('include_notes', False),
+            help="Add order notes column to CSV"
+        )
+        settings['include_notes'] = include_notes
+        
+        decimal_precision = st.number_input(
+            "Decimal Precision",
+            min_value=0,
+            max_value=10,
+            value=settings.get('decimal_precision', 2),
+            help="Number of decimal places for prices"
+        )
+        settings['decimal_precision'] = decimal_precision
+    
+    # ========================================================================
+    # TAB 6: API RATE LIMITING
+    # ========================================================================
+    with tab6:
+        st.subheader("⏱️ API Rate Limiting")
+        
+        delay = st.slider(
+            "Delay Between Orders (seconds)",
+            min_value=0,
+            max_value=10,
+            value=settings.get('delay_between_orders', 1),
+            help="Wait time between processing each order"
+        )
+        settings['delay_between_orders'] = delay
+        
+        max_concurrent = st.number_input(
+            "Max Concurrent Requests",
+            min_value=1,
+            max_value=10,
+            value=settings.get('max_concurrent', 1),
+            help="Number of simultaneous API requests"
+        )
+        settings['max_concurrent'] = max_concurrent
+        
+        auto_retry = st.toggle(
+            "Auto-Retry Failed Orders",
+            value=settings.get('auto_retry_failed', True),
+            help="Automatically retry failed orders"
+        )
+        settings['auto_retry_failed'] = auto_retry
+        
+        timeout = st.number_input(
+            "Timeout Duration (seconds)",
+            min_value=30,
+            max_value=300,
+            value=settings.get('timeout_duration', 120),
+            help="Max wait time for API responses"
+        )
+        settings['timeout_duration'] = timeout
+    
+    # ========================================================================
+    # TAB 7: DASHBOARD LAYOUT
+    # ========================================================================
+    with tab7:
+        st.subheader("📐 Dashboard Layout")
+        
+        sidebar_open = st.toggle(
+            "Sidebar Open by Default",
+            value=settings.get('sidebar_default_open', True),
+            help="Show sidebar when dashboard loads"
+        )
+        settings['sidebar_default_open'] = sidebar_open
+        
+        sort_order = st.radio(
+            "Order Sort Order",
+            ["Newest First", "Oldest First", "Order Number"],
+            index=["Newest First", "Oldest First", "Order Number"].index(
+                settings.get('sort_order', 'Newest First')
+            )
+        )
+        settings['sort_order'] = sort_order
+        
+        items_per_page = st.number_input(
+            "Items Per Page",
+            min_value=5,
+            max_value=100,
+            value=settings.get('items_per_page', 20),
+            help="Number of orders to show per page"
+        )
+        settings['items_per_page'] = items_per_page
+    
+    # ========================================================================
+    # TAB 8: BACKUP & SYNC
+    # ========================================================================
+    with tab8:
+        st.subheader("💾 Backup & Sync")
+        
+        st.markdown("#### Export Settings")
+        
+        if st.button("📥 Export Settings File"):
+            settings_json = export_settings(settings)
+            st.download_button(
+                label="Download Settings.json",
+                data=settings_json,
+                file_name=f"dashboard_settings_{datetime.now().strftime('%Y%m%d')}.json",
+                mime="application/json"
+            )
+            st.success("Settings ready for download!")
+        
+        st.markdown("#### Import Settings")
+        
+        uploaded_file = st.file_uploader("Upload Settings File", type=['json'])
+        if uploaded_file is not None:
+            try:
+                json_string = uploaded_file.read().decode('utf-8')
+                imported_settings = import_settings(json_string)
+                if imported_settings:
+                    st.session_state.settings = imported_settings
+                    st.success("Settings imported successfully!")
+                    st.rerun()
+                else:
+                    st.error("Invalid settings file")
+            except Exception as e:
+                st.error(f"Error importing: {e}")
+    
+    # ========================================================================
+    # TAB 9: ADVANCED
+    # ========================================================================
+    with tab9:
+        st.subheader("🔧 Advanced Options")
+        
+        debug_mode = st.toggle(
+            "Debug Mode",
+            value=settings.get('debug_mode', False),
+            help="Show detailed error messages"
+        )
+        settings['debug_mode'] = debug_mode
+        
+        show_logs = st.toggle(
+            "Show API Logs",
+            value=settings.get('show_api_logs', False),
+            help="Display API request/response logs"
+        )
+        settings['show_api_logs'] = show_logs
+        
+        st.markdown("---")
+        st.markdown("#### Danger Zone")
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            if st.button("🔄 Reset to Defaults", type="secondary"):
+                if st.session_state.get('confirm_reset', False):
+                    st.session_state.settings = reset_settings()
+                    save_settings(st.session_state.settings)
+                    st.success("Settings reset!")
+                    st.session_state.confirm_reset = False
+                    time.sleep(1)
+                    st.rerun()
+                else:
+                    st.session_state.confirm_reset = True
+                    st.warning("Click again to confirm reset")
+        
+        with col2:
+            if st.button("🗑️ Clear All Data"):
+                st.warning("This feature is coming soon")
+    
+    # ========================================================================
+    # SAVE SETTINGS BUTTON
+    # ========================================================================
+    st.markdown("---")
+    
+    col1, col2, col3 = st.columns([1, 1, 2])
+    
+    with col1:
+        if st.button("💾 Save Settings", type="primary", use_container_width=True):
+            if save_settings(settings):
+                st.success("Settings saved!")
+                time.sleep(0.5)
+                st.rerun()
+            else:
+                st.error("Error saving settings")
+    
+    with col2:
+        if st.button("↩️ Reload", use_container_width=True):
+            st.session_state.settings = load_settings()
+            st.rerun()
+    
+    # Update session state
+    st.session_state.settings = settings
+
+# ============================================================================
+# HELPER FUNCTIONS
+# ============================================================================
+
+def calculate_star_sign(month: int, day: int) -> str:
+    """Calculate zodiac star sign"""
+    if (month == 12 and day >= 22) or (month == 1 and day <= 19):
+        return "CAPRICORN"
+    elif (month == 1 and day >= 20) or (month == 2 and day <= 18):
+        return "AQUARIUS"
+    elif (month == 2 and day >= 19) or (month == 3 and day <= 20):
+        return "PISCES"
+    elif (month == 3 and day >= 21) or (month == 4 and day <= 19):
+        return "ARIES"
+    elif (month == 4 and day >= 20) or (month == 5 and day <= 20):
+        return "TAURUS"
+    elif (month == 5 and day >= 21) or (month == 6 and day <= 20):
+        return "GEMINI"
+    elif (month == 6 and day >= 21) or (month == 7 and day <= 22):
+        return "CANCER"
+    elif (month == 7 and day >= 23) or (month == 8 and day <= 22):
+        return "LEO"
+    elif (month == 8 and day >= 23) or (month == 9 and day <= 22):
+        return "VIRGO"
+    elif (month == 9 and day >= 23) or (month == 10 and day <= 22):
+        return "LIBRA"
+    elif (month == 10 and day >= 23) or (month == 11 and day <= 21):
+        return "SCORPIO"
+    else:
+        return "SAGITTARIUS"
+
+def get_birthstone(month: int) -> str:
+    """Get birthstone for month"""
+    stones = [
+        "Garnet", "Amethyst", "Aquamarine", "Diamond", "Emerald", "Pearl",
+        "Ruby", "Peridot", "Sapphire", "Opal", "Topaz", "Turquoise"
+    ]
+    return stones[month - 1]
+
+def get_month_name(month: int) -> str:
+    """Get month name"""
+    months = [
+        "January", "February", "March", "April", "May", "June",
+        "July", "August", "September", "October", "November", "December"
+    ]
+    return months[month - 1]
+
+def get_day_of_week(day: int, month: int, year: int) -> str:
+    """Calculate day of week"""
+    date = datetime(year, month, day)
+    days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+    return days[date.weekday()]
+
+# ============================================================================
+# SHOPIFY API FUNCTIONS
+# ============================================================================
+
+def fetch_shopify_orders(api_token: str, store_url: str) -> List[Dict]:
+    """Fetch orders from Shopify"""
+    url = f"https://{store_url}/admin/api/2024-01/orders.json"
+    headers = {
+        "X-Shopify-Access-Token": api_token,
+        "Content-Type": "application/json"
+    }
+    
+    params = {
+        "status": "any",
+        "limit": 250,
+        "fields": "id,name,email,line_items,fulfillment_status,created_at"
+    }
+    
+    try:
+        response = requests.get(url, headers=headers, params=params, timeout=30)
+        
+        if response.status_code != 200:
+            st.error(f"Shopify API Error: {response.status_code}")
+            return []
+        
+        orders = response.json().get("orders", [])
+        return orders
+        
+    except Exception as e:
+        st.error(f"Error fetching orders: {e}")
+        return []
+
+def extract_personalization_data(order: Dict) -> Optional[tuple]:
+    """Extract Full Name and Birthday from order"""
+    for item in order.get("line_items", []):
+        properties = item.get("properties", [])
+        
+        full_name = None
+        birthday = None
+        
+        for prop in properties:
+            if prop.get("name") == "Full Name":
+                full_name = prop.get("value")
+            elif prop.get("name") == "Birthday":
+                birthday = prop.get("value")
+        
+        if full_name and birthday:
+            return (full_name, birthday)
+    
+    return None
+
+# ============================================================================
+# CLAUDE API FUNCTION
+# ============================================================================
+
+def research_with_claude(month_name: str, day: int, year: int, api_key: str, progress_callback=None) -> Dict:
+    """Call Claude API to research historical data"""
+    
+    if progress_callback:
+        progress_callback("🔍 Researching with Claude API...")
+    
+    prompt = f"""Research historical data for {month_name} {day}, {year} in Australia. 
+Return ONLY valid JSON (no markdown, no code blocks, no preamble).
+
+CRITICAL FORMATTING RULES:
+- All monetary values: ONLY the number with $ or c symbol (e.g., "$2,080" or "8c")
+- All population values: ONLY the number with units (e.g., "3.3 Billion" or "11.6 million")
+- All percentage values: ONLY the number with % (e.g., "3.2%")
+- Celebrity names: Name - Description (NO DATES, e.g., "Steve Seagal - American actor and martial artist")
+- News events: Must be events that happened on {month_name} {day} in ANY year (worldwide, not just Australia)
+- Number1Song: If ARIA charts didn't exist in {year}, use worldwide #1 song from that time
+- HISTORICAL EVENTS: Must be events that happened on {month_name} {day} across different eras (1800s, early 1900s, mid 1900s, 2000s)
+  - Look for events on {month_name} {day} in 1800s, early 1900s (1900-1940), mid-late 1900s (1950-1990), and 2000s-2020s
+  - If no significant events can be found for that specific DATE, then use events from {year} instead
+
+Provide accurate Australian historical data in this exact JSON structure:
+
+{{
+  "PrimeMinister": "Name of Australian PM serving in {year}",
+  "IncomingPM": "Name of the PM who came to power AFTER the current PM (regardless of what year they took office)",
+  "Monarch": "Name of British monarch in {year}",
+  "AverageSalary": "VALUE ONLY e.g., $2,080",
+  "Celebrity1": "Name - Description (NO DATES)",
+  "Celebrity2": "Name - Description (NO DATES)",
+  "Celebrity3": "Name - Description (NO DATES)",
+  "NewsEvent1": "Major world event that happened on {month_name} {day} in ANY year",
+  "NewsEvent2": "Second major world event that happened on {month_name} {day} in ANY year",
+  "NewsEvent3": "Third major world event that happened on {month_name} {day} in ANY year",
+  "NRLWinner": "NRL premiership winner {year}",
+  "AFLWinner": "AFL premiership winner {year}",
+  "BestActor": "Oscar Best Actor {year} - Film name",
+  "BestActress": "Oscar Best Actress {year} - Film name",
+  "Bathurst1000": "Bathurst 1000 winners {year}",
+  "AusOpenWinners": "Australian Open singles winners {year}",
+  "Number1Song": "Song title - Artist (use ARIA if exists for {year}, otherwise worldwide #1)",
+  "AverageHouse": "VALUE ONLY e.g., $8,500",
+  "MilkPrice": "VALUE ONLY e.g., $0.08 or $1.20",
+  "BreadPrice": "VALUE ONLY e.g., $0.18 or $1.20",
+  "EggsPrice": "VALUE ONLY e.g., $0.45 or $1.80",
+  "WorldPopulation": "VALUE ONLY e.g., 3.3 Billion",
+  "AustraliaPopulation": "VALUE ONLY e.g., 11.6 million",
+  "HistoricalEventDate1": "Year (1800s era) when event happened on {month_name} {day}",
+  "HistoricalEvent1": "Major historical event that happened on {month_name} {day} in the 1800s",
+  "HistoricalEventDate2": "Year (early 1900s) when event happened on {month_name} {day}",
+  "HistoricalEvent2": "Major historical event that happened on {month_name} {day} in early 1900s (1900-1940)",
+  "HistoricalEventDate3": "Year (mid-late 1900s) when event happened on {month_name} {day}",
+  "HistoricalEvent3": "Major historical event that happened on {month_name} {day} in mid-late 1900s (1950-1990)",
+  "HistoricalEventDate4": "Year (2000s-2020s) when event happened on {month_name} {day}",
+  "HistoricalEvent4": "Major historical event that happened on {month_name} {day} in 2000s-2020s",
+  "YearsOfWages": "VALUE ONLY e.g., 4-5 years wages",
+  "CadburyBarPrice": "VALUE ONLY e.g., 8c or 90c",
+  "PetrolPrice": "VALUE ONLY e.g., $0.06 or $0.68",
+  "InflationRate": "VALUE ONLY e.g., 3.2%",
+  "StampPrice": "VALUE ONLY e.g., 5c or 41c",
+  "CinemaPrice": "VALUE ONLY e.g., $0.75 or $7.50",
+  "TopBook": "Title - Author",
+  "TopBookDescription": "One sentence description",
+  "TVShow": "Show name",
+  "TVShowDescription": "One sentence description",
+  "FashionTrend": "Trend name",
+  "FashionDescription": "One sentence description",
+  "Technology": "Technology name",
+  "TechnologyDescription": "One sentence description",
+  "AustraliaBirths": "VALUE ONLY e.g., 223,000",
+  "BirthsDescription": "One sentence about birth rate",
+  "BoyName1": "Most popular boys name Australia {year}",
+  "BoyName2": "2nd most popular",
+  "BoyName3": "3rd",
+  "BoyName4": "4th",
+  "BoyName5": "5th",
+  "BoyName6": "6th",
+  "BoyName7": "7th",
+  "BoyName8": "8th",
+  "BoyName9": "9th",
+  "BoyName10": "10th",
+  "GirlName1": "Most popular girls name Australia {year}",
+  "GirlName2": "2nd",
+  "GirlName3": "3rd",
+  "GirlName4": "4th",
+  "GirlName5": "5th",
+  "GirlName6": "6th",
+  "GirlName7": "7th",
+  "GirlName8": "8th",
+  "GirlName9": "9th",
+  "GirlName10": "10th"
+}}
+
+REMEMBER: 
+- NewsEvent1/2/3 must be events that happened on {month_name} {day} in ANY YEAR (not just {year})
+- HistoricalEvent1/2/3/4 must ALSO be events that happened on {month_name} {day} across DIFFERENT ERAS
+  - Try to find: one from 1800s, one from early 1900s, one from mid 1900s, one from 2000s
+  - All should be on {month_name} {day} (the DATE matters, not the year)
+  - Only use events from {year} if you cannot find events for that specific date
+- All dollar/price values must be CLEAN: just number + $ or c
+- Celebrity format: "Name - What they're known for" (NO birth dates)
+
+Return ONLY the JSON object. Start with {{ and end with }}."""
+
+    url = "https://api.anthropic.com/v1/messages"
+    headers = {
+        "x-api-key": api_key,
+        "anthropic-version": "2023-06-01",
+        "content-type": "application/json"
+    }
+    
+    timeout = st.session_state.settings.get('timeout_duration', 120)
+    
+    data = {
+        "model": "claude-sonnet-4-20250514",
+        "max_tokens": 4000,
+        "messages": [{
+            "role": "user",
+            "content": prompt
+        }]
+    }
+    
+    try:
+        response = requests.post(url, headers=headers, json=data, timeout=timeout)
+        
+        if response.status_code != 200:
+            if progress_callback:
+                progress_callback(f"❌ Claude API error: {response.status_code}")
+            return {}
+        
+        result = response.json()
+        text_content = result["content"][0]["text"]
+        
+        # Clean up markdown
+        text_content = text_content.replace("```json", "").replace("```", "").strip()
+        
+        # Parse JSON
+        research_data = json.loads(text_content)
+        
+        if progress_callback:
+            progress_callback("✅ Research completed")
+        
+        return research_data
+        
+    except Exception as e:
+        if progress_callback:
+            progress_callback(f"❌ Error: {str(e)}")
+        return {}
+
+# ============================================================================
+# ORDER PROCESSING
+# ============================================================================
+
+def process_order(order: Dict, claude_api_key: str, progress_callback=None) -> Optional[Dict]:
+    """Process a single order and return complete data"""
+    order_number = order["name"]
+    
+    if progress_callback:
+        progress_callback(f"📋 Processing {order_number}...")
+    
+    # Extract personalization
+    personalization = extract_personalization_data(order)
+    if not personalization:
+        if progress_callback:
+            progress_callback(f"⚠️ No personalization data found")
+        return None
+    
+    full_name, birthday = personalization
+    
+    if progress_callback:
+        progress_callback(f"👤 Customer: {full_name}")
+        progress_callback(f"🎂 Birthday: {birthday}")
+    
+    # Parse birthday
+    try:
+        day, month, year = map(int, birthday.split('/'))
+    except:
+        if progress_callback:
+            progress_callback("❌ Invalid birthday format")
+        return None
+    
+    # Calculate fields
+    day_of_week = get_day_of_week(day, month, year)
+    month_name = get_month_name(month)
+    star_sign = calculate_star_sign(month, day)
+    birthstone = get_birthstone(month)
+    
+    # Delay if configured
+    delay = st.session_state.settings.get('delay_between_orders', 1)
+    if delay > 0:
+        time.sleep(delay)
+    
+    # Research with Claude
+    research_data = research_with_claude(month_name, day, year, claude_api_key, progress_callback)
+    
+    if not research_data:
+        if st.session_state.settings.get('auto_retry_failed', True):
+            if progress_callback:
+                progress_callback("🔄 Retrying...")
+            time.sleep(2)
+            research_data = research_with_claude(month_name, day, year, claude_api_key, progress_callback)
+            
+        if not research_data:
+            return None
+    
+    # Combine data
+    complete_data = {
+        "OrderID": order_number,
+        "Name": full_name.upper(),
+        "DayOfWeek": day_of_week,
+        "MonthName": month_name,
+        "Day": day,
+        "Year": year,
+        "StarSign": star_sign,
+        "Birthstone": birthstone,
+    }
+    
+    complete_data.update(research_data)
+    
+    if progress_callback:
+        progress_callback(f"✅ {order_number} processed successfully")
+    
+    return complete_data
+
+def generate_csv_filename(settings: dict) -> str:
+    """Generate CSV filename based on settings"""
+    template = settings.get('filename_format', 'orders_{date}_{time}')
+    now = datetime.now()
+    
+    filename = template.replace('{date}', now.strftime('%Y-%m-%d'))
+    filename = filename.replace('{time}', now.strftime('%H-%M-%S'))
+    
+    if not filename.endswith('.csv'):
+        filename += '.csv'
+    
+    return filename
+
+def save_csv(data: List[Dict], settings: dict) -> str:
+    """Save processed data to CSV"""
+    df = pd.DataFrame(data)
+    filename = generate_csv_filename(settings)
+    
+    save_location = settings.get('auto_save_location', '.')
+    filepath = os.path.join(save_location, filename)
+    
+    df.to_csv(filepath, index=False)
+    
+    return filepath
+
+# ============================================================================
+# MAIN DASHBOARD
+# ============================================================================
+
+def main():
+    """Main dashboard application"""
+    
+    # Header
+    st.title("📅 The Day Archive - Dashboard V2")
+    st.caption("Complete order processing with advanced settings")
+    st.markdown("---")
+    
+    # Sidebar
+    with st.sidebar:
+        st.header("⚙️ Controls")
+        
+        # API Credentials
+        st.subheader("🔐 API Credentials")
+        
+        shopify_store = st.text_input(
+            "Shopify Store URL",
+            value=st.session_state.api_credentials.get('shopify_store', ''),
+            placeholder="your-store.myshopify.com",
+            help="Your Shopify store URL"
+        )
+        st.session_state.api_credentials['shopify_store'] = shopify_store
+        
+        shopify_token = st.text_input(
+            "Shopify Access Token",
+            value=st.session_state.api_credentials.get('shopify_token', ''),
+            type="password",
+            placeholder="shpat_...",
+            help="Your Shopify Admin API access token"
+        )
+        st.session_state.api_credentials['shopify_token'] = shopify_token
+        
+        claude_api_key = st.text_input(
+            "Claude API Key",
+            value=st.session_state.api_credentials.get('claude_api_key', ''),
+            type="password",
+            placeholder="sk-ant-api03-...",
+            help="Your Claude API key"
+        )
+        st.session_state.api_credentials['claude_api_key'] = claude_api_key
+        
+        # Test connections
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button("Test Shopify", use_container_width=True):
+                with st.spinner("Testing..."):
+                    if shopify_store and shopify_token:
+                        orders = fetch_shopify_orders(shopify_token, shopify_store)
+                        if orders:
+                            st.success(f"✓ ({len(orders)})")
+                        else:
+                            st.error("✗ Failed")
+                    else:
+                        st.warning("Enter credentials")
+        
+        with col2:
+            if st.button("Test Claude", use_container_width=True):
+                if claude_api_key and claude_api_key.startswith('sk-ant-'):
+                    st.success("✓ Valid")
+                else:
+                    st.error("✗ Invalid")
+        
+        st.markdown("---")
+        
+        # Quick Settings Access
+        st.subheader("⚡ Quick Settings")
+        
+        batch_size = st.number_input(
+            "Batch Size",
+            min_value=1,
+            max_value=100,
+            value=st.session_state.settings.get('default_batch_size', 5),
+            help="Orders to process at once"
+        )
+        st.session_state.settings['default_batch_size'] = batch_size
+        
+        if st.button("🎨 Open Full Settings", use_container_width=True):
+            st.session_state.show_settings = True
+        
+        st.markdown("---")
+        
+        # Cost Tracker
+        st.subheader("💰 Cost Tracker")
+        st.metric("Processed Today", st.session_state.total_processed_today)
+        cost = st.session_state.total_processed_today * 0.015
+        st.metric("Estimated Cost", f"${cost:.2f}")
+    
+    # Show settings page if requested
+    if st.session_state.get('show_settings', False):
+        if st.button("← Back to Dashboard"):
+            st.session_state.show_settings = False
+            st.rerun()
+        render_settings_page()
+        return
+    
+    # Main tabs
+    tab1, tab2, tab3, tab4 = st.tabs(["📋 Orders", "⚙️ Processing", "📊 History", "❌ Errors"])
+    
+    # ========================================================================
+    # TAB 1: ORDERS
+    # ========================================================================
+    with tab1:
+        st.header("Unfulfilled Orders")
+        
+        # Fetch orders
+        if st.button("🔄 Refresh Orders", type="primary"):
+            if shopify_store and shopify_token:
+                with st.spinner("Fetching from Shopify..."):
+                    orders = fetch_shopify_orders(shopify_token, shopify_store)
+                    
+                    # Filter unfulfilled
+                    unfulfilled = [o for o in orders if o.get("fulfillment_status") != "fulfilled"]
+                    
+                    # Store
+                    st.session_state.unfulfilled_orders = unfulfilled
+                    st.success(f"Found {len(unfulfilled)} unfulfilled orders")
+            else:
+                st.error("Please enter API credentials in sidebar")
+        
+        # Display orders
+        if 'unfulfilled_orders' in st.session_state and st.session_state.unfulfilled_orders:
+            orders = st.session_state.unfulfilled_orders
+            
+            # Filters
+            col1, col2, col3 = st.columns(3)
+            
+            with col1:
+                search = st.text_input("🔍 Search", placeholder="Order # or customer")
+            
+            with col2:
+                date_filter = st.selectbox(
+                    "📅 Filter by Date",
+                    ["All Orders", "Today", "Yesterday", "Last 7 Days", "Last 30 Days"],
+                    index=["All Orders", "Today", "Yesterday", "Last 7 Days", "Last 30 Days"].index(
+                        st.session_state.settings.get('default_date_filter', 'All Orders')
+                    )
+                )
+            
+            with col3:
+                sort_by = st.selectbox(
+                    "Sort By",
+                    ["Newest First", "Oldest First", "Order Number"],
+                    index=["Newest First", "Oldest First", "Order Number"].index(
+                        st.session_state.settings.get('sort_order', 'Newest First')
+                    )
+                )
+            
+            # Apply filters
+            filtered = orders
+            
+            if search:
+                filtered = [
+                    o for o in filtered
+                    if search.lower() in o['name'].lower() or 
+                       search.lower() in o.get('email', '').lower()
+                ]
+            
+            if date_filter == "Today":
+                today = datetime.now().date()
+                filtered = [
+                    o for o in filtered
+                    if datetime.fromisoformat(o['created_at'].replace('Z', '+00:00')).date() == today
+                ]
+            elif date_filter == "Yesterday":
+                yesterday = (datetime.now() - timedelta(days=1)).date()
+                filtered = [
+                    o for o in filtered
+                    if datetime.fromisoformat(o['created_at'].replace('Z', '+00:00')).date() == yesterday
+                ]
+            elif date_filter == "Last 7 Days":
+                week_ago = (datetime.now() - timedelta(days=7)).date()
+                filtered = [
+                    o for o in filtered
+                    if datetime.fromisoformat(o['created_at'].replace('Z', '+00:00')).date() >= week_ago
+                ]
+            elif date_filter == "Last 30 Days":
+                month_ago = (datetime.now() - timedelta(days=30)).date()
+                filtered = [
+                    o for o in filtered
+                    if datetime.fromisoformat(o['created_at'].replace('Z', '+00:00')).date() >= month_ago
+                ]
+            
+            # Sort
+            if sort_by == "Newest First":
+                filtered.sort(key=lambda x: x['created_at'], reverse=True)
+            elif sort_by == "Oldest First":
+                filtered.sort(key=lambda x: x['created_at'])
+            else:
+                filtered.sort(key=lambda x: int(x['name'].replace('#', '')))
+            
+            st.markdown(f"**Showing {len(filtered)} orders**")
+            
+            # Selection controls
+            col1, col2 = st.columns([1, 3])
+            with col1:
+                if st.button("✓ Select All"):
+                    st.session_state.selected_orders = [o['name'] for o in filtered]
+                    st.rerun()
+            with col2:
+                if st.button("✗ Deselect All"):
+                    st.session_state.selected_orders = []
+                    st.rerun()
+            
+            # Order list
+            for order in filtered[:st.session_state.settings.get('items_per_page', 20)]:
+                personalization = extract_personalization_data(order)
+                
+                col1, col2, col3, col4 = st.columns([1, 2, 2, 2])
+                
+                with col1:
+                    selected = st.checkbox(
+                        order['name'],
+                        value=order['name'] in st.session_state.selected_orders,
+                        key=f"order_{order['name']}"
+                    )
+                    if selected and order['name'] not in st.session_state.selected_orders:
+                        st.session_state.selected_orders.append(order['name'])
+                    elif not selected and order['name'] in st.session_state.selected_orders:
+                        st.session_state.selected_orders.remove(order['name'])
+                
+                with col2:
+                    if personalization:
+                        st.write(f"**{personalization[0]}**")
+                    else:
+                        st.write("_No data_")
+                
+                with col3:
+                    if personalization:
+                        st.write(f"🎂 {personalization[1]}")
+                    else:
+                        st.write("—")
+                
+                with col4:
+                    order_date = datetime.fromisoformat(order['created_at'].replace('Z', '+00:00'))
+                    st.write(f"📅 {order_date.strftime('%b %d, %Y')}")
+            
+            st.markdown(f"**Selected: {len(st.session_state.selected_orders)} orders**")
+        
+        else:
+            st.info("Click 'Refresh Orders' to load unfulfilled orders")
+    
+    # ========================================================================
+    # TAB 2: PROCESSING
+    # ========================================================================
+    with tab2:
+        st.header("Process Orders")
+        
+        if st.session_state.selected_orders:
+            st.success(f"Ready to process {len(st.session_state.selected_orders)} selected orders")
+            
+            if st.button("🚀 Process Selected Orders", type="primary", disabled=st.session_state.processing):
+                if not claude_api_key:
+                    st.error("Please enter Claude API key in sidebar")
+                else:
+                    st.session_state.processing = True
+                    st.session_state.processed_orders = []
+                    
+                    # Progress containers
+                    progress_bar = st.progress(0)
+                    status_text = st.empty()
+                    log_container = st.container()
+                    
+                    # Get selected orders
+                    selected_objs = [
+                        o for o in st.session_state.unfulfilled_orders
+                        if o['name'] in st.session_state.selected_orders
+                    ]
+                    
+                    total = len(selected_objs)
+                    
+                    # Process each
+                    for idx, order in enumerate(selected_objs):
+                        progress = (idx + 1) / total
+                        progress_bar.progress(progress)
+                        status_text.markdown(f"**Processing {idx + 1} of {total}** ({order['name']})")
+                        
+                        def log(msg):
+                            with log_container:
+                                st.write(msg)
+                            st.session_state.processing_log.append({
+                                "timestamp": datetime.now(),
+                                "order": order['name'],
+                                "message": msg
+                            })
+                        
+                        try:
+                            order_data = process_order(order, claude_api_key, log)
+                            
+                            if order_data:
+                                st.session_state.processed_orders.append(order_data)
+                                st.session_state.total_processed_today += 1
+                            else:
+                                st.session_state.error_log.append({
+                                    "timestamp": datetime.now(),
+                                    "order": order['name'],
+                                    "error": "Processing failed"
+                                })
+                        
+                        except Exception as e:
+                            st.session_state.error_log.append({
+                                "timestamp": datetime.now(),
+                                "order": order['name'],
+                                "error": str(e)
+                            })
+                            log(f"❌ Error: {str(e)}")
+                    
+                    # Complete
+                    st.session_state.processing = False
+                    progress_bar.progress(1.0)
+                    status_text.markdown("**✅ Processing Complete!**")
+                    
+                    # Generate CSV
+                    if st.session_state.processed_orders:
+                        try:
+                            filepath = save_csv(
+                                st.session_state.processed_orders,
+                                st.session_state.settings
+                            )
+                            
+                            st.success(f"✅ Generated {os.path.basename(filepath)}")
+                            
+                            # Download button
+                            df = pd.DataFrame(st.session_state.processed_orders)
+                            csv_data = df.to_csv(index=False).encode('utf-8')
+                            
+                            st.download_button(
+                                label="📥 Download CSV",
+                                data=csv_data,
+                                file_name=os.path.basename(filepath),
+                                mime="text/csv"
+                            )
+                            
+                            # Preview
+                            with st.expander("👁️ Preview Data"):
+                                st.dataframe(df.head(10))
+                        
+                        except Exception as e:
+                            st.error(f"Error saving CSV: {e}")
+        
+        else:
+            st.info("Select orders from the Orders tab to process")
+    
+    # ========================================================================
+    # TAB 3: HISTORY
+    # ========================================================================
+    with tab3:
+        st.header("Processing History")
+        
+        if st.session_state.processing_log:
+            st.markdown(f"**Total logs: {len(st.session_state.processing_log)}**")
+            
+            # Group by order
+            by_order = {}
+            for log in st.session_state.processing_log:
+                order = log['order']
+                if order not in by_order:
+                    by_order[order] = []
+                by_order[order].append(log)
+            
+            # Display
+            for order, logs in by_order.items():
+                with st.expander(f"📋 {order} ({len(logs)} events)"):
+                    for log in logs:
+                        st.caption(f"{log['timestamp'].strftime('%H:%M:%S')} - {log['message']}")
+        
+        else:
+            st.info("No processing history yet")
+        
+        # Show processed orders
+        if st.session_state.processed_orders:
+            st.markdown("---")
+            st.subheader("✅ Successfully Processed")
+            
+            for order_data in st.session_state.processed_orders:
+                st.success(f"{order_data['OrderID']} - {order_data['Name']}")
+    
+    # ========================================================================
+    # TAB 4: ERRORS
+    # ========================================================================
+    with tab4:
+        st.header("Error Log")
+        
+        if st.session_state.error_log:
+            st.error(f"**{len(st.session_state.error_log)} errors logged**")
+            
+            for error in st.session_state.error_log:
+                with st.expander(f"❌ {error['order']} - {error['timestamp'].strftime('%H:%M:%S')}"):
+                    st.code(error['error'])
+                    
+                    if st.button(f"🔄 Retry {error['order']}", key=f"retry_{error['order']}"):
+                        st.info("Retry functionality coming soon")
+        
+        else:
+            st.success("No errors! 🎉")
+
+# ============================================================================
+# ENTRY POINT
+# ============================================================================
+
+if __name__ == "__main__":
+    main()
+
+
+
+
+
+
+
+
+
