@@ -1062,6 +1062,16 @@ def main():
         # Quick Settings Access
         st.subheader("⚡ Quick Settings")
         
+        test_mode = st.toggle(
+            "🧪 Test Mode",
+            value=st.session_state.get('test_mode', False),
+            help="Process only selected orders (no auto-processing)"
+        )
+        st.session_state.test_mode = test_mode
+        
+        if test_mode:
+            st.warning("⚠️ Test Mode Active - Only selected orders will process")
+        
         batch_size = st.number_input(
             "Batch Size",
             min_value=1,
@@ -1241,6 +1251,9 @@ def main():
     # ========================================================================
     with tab2:
         st.header("Process Orders")
+        
+        if st.session_state.get('test_mode', False):
+            st.info("🧪 **Test Mode Active** - Processing only selected orders")
         
         if st.session_state.selected_orders:
             st.success(f"Ready to process {len(st.session_state.selected_orders)} selected orders")
