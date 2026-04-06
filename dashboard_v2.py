@@ -1197,18 +1197,22 @@ def main():
             
             st.markdown(f"**Showing {len(filtered)} orders**")
             
-            # Selection controls
+            # Store filtered orders for callbacks
+            if 'current_filtered_orders' not in st.session_state:
+                st.session_state.current_filtered_orders = []
+            st.session_state.current_filtered_orders = [o['name'] for o in filtered]
+            
+            # Selection controls with callbacks
             col1, col2 = st.columns([1, 3])
             with col1:
-                if st.button("✓ Select All", key="select_all_btn"):
+                if st.button("✓ Select All", key="select_all_btn", use_container_width=True):
                     st.session_state.selected_orders = [o['name'] for o in filtered]
-                    st.rerun()
             with col2:
-                if st.button("✗ Deselect All", key="deselect_all_btn"):
+                if st.button("✗ Deselect All", key="deselect_all_btn", use_container_width=True):
                     st.session_state.selected_orders = []
-                    st.rerun()
             
             st.markdown(f"**Selected: {len(st.session_state.selected_orders)} orders**")
+            st.markdown("---")
             
             # Order list
             for idx, order in enumerate(filtered[:st.session_state.settings.get('items_per_page', 20)]):
@@ -1217,21 +1221,19 @@ def main():
                 col1, col2, col3, col4 = st.columns([1, 2, 2, 2])
                 
                 with col1:
-                    # Checkbox with index-based key to ensure proper re-rendering
-                    is_selected = order['name'] in st.session_state.selected_orders
-                    selected = st.checkbox(
-                        order['name'],
-                        value=is_selected,
-                        key=f"order_checkbox_{order['id']}_{idx}"
-                    )
+                    # Simpler approach - just check the value, update happens via button
+                    is_checked = order['name'] in st.session_state.selected_orders
                     
-                    # Update selection state
-                    if selected and not is_selected:
-                        st.session_state.selected_orders.append(order['name'])
-                        st.rerun()
-                    elif not selected and is_selected:
-                        st.session_state.selected_orders.remove(order['name'])
-                        st.rerun()
+                    if st.checkbox(
+                        order['name'],
+                        value=is_checked,
+                        key=f"cb_{order['name']}_{is_checked}"  # Key includes state to force update
+                    ):
+                        if order['name'] not in st.session_state.selected_orders:
+                            st.session_state.selected_orders.append(order['name'])
+                    else:
+                        if order['name'] in st.session_state.selected_orders:
+                            st.session_state.selected_orders.remove(order['name'])
                 
                 with col2:
                     if personalization:
