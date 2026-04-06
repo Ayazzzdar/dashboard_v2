@@ -202,8 +202,29 @@ def render_settings_page():
     # TAB 1: BRAND COLORS
     # ========================================================================
     with tab1:
-        st.subheader("🎨 Customize Brand Colors")
-        st.markdown("Personalize your dashboard theme")
+        st.subheader("🎨 Customize Brand & Colors")
+        st.markdown("Personalize your dashboard branding and theme")
+        
+        # Branding Section
+        st.markdown("#### 📝 Dashboard Branding")
+        
+        dashboard_name = st.text_input(
+            "Dashboard Name",
+            value=settings.get('dashboard_name', 'The Day Archive - Dashboard V2'),
+            help="Custom name for your dashboard"
+        )
+        settings['dashboard_name'] = dashboard_name
+        
+        logo_file = st.text_input(
+            "Logo Filename",
+            value=settings.get('logo_file', 'logo.png'),
+            help="Name of logo file in your GitHub repo (e.g., logo.png, my-logo.svg)"
+        )
+        settings['logo_file'] = logo_file
+        
+        st.caption("💡 Upload your logo to GitHub with this filename")
+        
+        st.markdown("---")
         
         col1, col2 = st.columns([2, 1])
         
@@ -965,15 +986,19 @@ def save_csv(data: List[Dict], settings: dict) -> str:
 def main():
     """Main dashboard application"""
     
+    # Get branding settings
+    dashboard_name = st.session_state.settings.get('dashboard_name', 'The Day Archive - Dashboard V2')
+    logo_file = st.session_state.settings.get('logo_file', 'logo.png')
+    
     # Header with logo
     col1, col2 = st.columns([1, 4])
     with col1:
         try:
-            st.image("logo.png", width=150)
+            st.image(logo_file, width=150)
         except:
             st.write("📅")
     with col2:
-        st.title("The Day Archive - Dashboard V2")
+        st.title(dashboard_name)
         st.caption("Complete order processing with advanced settings")
     
     st.markdown("---")
