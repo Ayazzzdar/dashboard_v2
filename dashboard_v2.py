@@ -965,9 +965,17 @@ def save_csv(data: List[Dict], settings: dict) -> str:
 def main():
     """Main dashboard application"""
     
-    # Header
-    st.title("📅 The Day Archive - Dashboard V2")
-    st.caption("Complete order processing with advanced settings")
+    # Header with logo
+    col1, col2 = st.columns([1, 4])
+    with col1:
+        try:
+            st.image("logo.png", width=150)
+        except:
+            st.write("📅")
+    with col2:
+        st.title("The Day Archive - Dashboard V2")
+        st.caption("Complete order processing with advanced settings")
+    
     st.markdown("---")
     
     # Sidebar
