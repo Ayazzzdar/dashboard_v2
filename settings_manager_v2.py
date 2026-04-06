@@ -11,6 +11,10 @@ from pathlib import Path
 SETTINGS_FILE = ".dashboard_settings.json"
 
 DEFAULT_SETTINGS = {
+    # Branding
+    'dashboard_name': 'The Day Archive - Dashboard V2',
+    'logo_file': 'logo.png',
+    
     # Brand Colors
     'primary_color': '#1E3A8A',      # Navy Blue
     'accent_color': '#D1D5DB',        # Light Gray
