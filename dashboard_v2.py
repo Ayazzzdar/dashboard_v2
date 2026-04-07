@@ -710,6 +710,13 @@ def fetch_shopify_orders(api_token: str, store_url: str) -> List[Dict]:
 
 def extract_personalization_data(order: Dict) -> Optional[tuple]:
     """Extract Full Name and Birthday from order"""
+    
+    # Check if this order has been edited in session
+    if 'order_edits' in st.session_state and order['name'] in st.session_state.order_edits:
+        edits = st.session_state.order_edits[order['name']]
+        return (edits['full_name'], edits['birthday'])
+    
+    # Otherwise extract from order properties
     for item in order.get("line_items", []):
         properties = item.get("properties", [])
         
@@ -1218,7 +1225,11 @@ def main():
             for idx, order in enumerate(filtered[:st.session_state.settings.get('items_per_page', 20)]):
                 personalization = extract_personalization_data(order)
                 
-                col1, col2, col3, col4 = st.columns([1, 2, 2, 2])
+                # Check if we're editing this order
+                edit_key = f"edit_{order['name']}"
+                is_editing = st.session_state.get(edit_key, False)
+                
+                col1, col2, col3, col4, col5 = st.columns([1, 2, 2, 2, 1])
                 
                 with col1:
                     # Simpler approach - just check the value, update happens via button
@@ -1236,20 +1247,78 @@ def main():
                             st.session_state.selected_orders.remove(order['name'])
                 
                 with col2:
-                    if personalization:
-                        st.write(f"**{personalization[0]}**")
+                    if is_editing:
+                        # Edit mode - show input field
+                        new_name = st.text_input(
+                            "Full Name",
+                            value=personalization[0] if personalization else "",
+                            key=f"edit_name_{order['name']}",
+                            label_visibility="collapsed"
+                        )
                     else:
-                        st.write("_No data_")
+                        # Display mode
+                        if personalization:
+                            st.write(f"**{personalization[0]}**")
+                        else:
+                            st.write("_No data_")
                 
                 with col3:
-                    if personalization:
-                        st.write(f"🎂 {personalization[1]}")
+                    if is_editing:
+                        # Edit mode - show input field
+                        new_birthday = st.text_input(
+                            "Birthday",
+                            value=personalization[1] if personalization else "",
+                            placeholder="DD/MM/YYYY",
+                            key=f"edit_birthday_{order['name']}",
+                            label_visibility="collapsed"
+                        )
                     else:
-                        st.write("—")
+                        # Display mode
+                        if personalization:
+                            st.write(f"🎂 {personalization[1]}")
+                        else:
+                            st.write("—")
                 
                 with col4:
                     order_date = datetime.fromisoformat(order['created_at'].replace('Z', '+00:00'))
                     st.write(f"📅 {order_date.strftime('%b %d, %Y')}")
+                
+                with col5:
+                    if not personalization or personalization[0] == "" or personalization[1] == "":
+                        # Show edit button for orders with missing data
+                        if not is_editing:
+                            if st.button("✏️ Edit", key=f"btn_edit_{order['name']}", use_container_width=True):
+                                st.session_state[edit_key] = True
+                                st.rerun()
+                        else:
+                            # Show save button when editing
+                            if st.button("💾 Save", key=f"btn_save_{order['name']}", use_container_width=True):
+                                # Get the new values
+                                name_key = f"edit_name_{order['name']}"
+                                birthday_key = f"edit_birthday_{order['name']}"
+                                
+                                new_name = st.session_state.get(name_key, "")
+                                new_birthday = st.session_state.get(birthday_key, "")
+                                
+                                if new_name and new_birthday:
+                                    # Update order personalization
+                                    # Store in session state for this session
+                                    if 'order_edits' not in st.session_state:
+                                        st.session_state.order_edits = {}
+                                    
+                                    st.session_state.order_edits[order['name']] = {
+                                        'full_name': new_name,
+                                        'birthday': new_birthday
+                                    }
+                                    
+                                    st.session_state[edit_key] = False
+                                    st.success(f"Updated {order['name']}")
+                                    time.sleep(0.5)
+                                    st.rerun()
+                                else:
+                                    st.error("Please fill both fields")
+                    else:
+                        st.write("")  # Empty column for orders with data
         
         else:
             st.info("Click 'Refresh Orders' to load unfulfilled orders")
