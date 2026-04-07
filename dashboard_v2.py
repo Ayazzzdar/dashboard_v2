@@ -711,28 +711,30 @@ def fetch_shopify_orders(api_token: str, store_url: str) -> List[Dict]:
 def extract_personalization_data(order: Dict) -> Optional[tuple]:
     """Extract Full Name and Birthday from order"""
     
-    # Check if this order has been edited in session
-    if 'order_edits' in st.session_state and order['name'] in st.session_state.order_edits:
-        edits = st.session_state.order_edits[order['name']]
-        return (edits['full_name'], edits['birthday'])
+    # First get original data from order
+    full_name = None
+    birthday = None
     
-    # Otherwise extract from order properties
     for item in order.get("line_items", []):
         properties = item.get("properties", [])
         
-        full_name = None
-        birthday = None
-        
         for prop in properties:
             if prop.get("name") == "Full Name":
-                full_name = prop.get("value")
+                full_name = prop.get("value") or ""
             elif prop.get("name") == "Birthday":
-                birthday = prop.get("value")
-        
-        if full_name and birthday:
-            return (full_name, birthday)
+                birthday = prop.get("value") or ""
     
-    return None
+    # Check if this order has been edited in session - override with edits
+    if 'order_edits' in st.session_state and order['name'] in st.session_state.order_edits:
+        edits = st.session_state.order_edits[order['name']]
+        # Only override if edit value is not empty
+        if edits.get('full_name'):
+            full_name = edits['full_name']
+        if edits.get('birthday'):
+            birthday = edits['birthday']
+    
+    # Return tuple even if values are empty strings (so we can edit them)
+    return (full_name or "", birthday or "")
 
 # ============================================================================
 # CLAUDE API FUNCTION
@@ -1225,6 +1227,10 @@ def main():
             for idx, order in enumerate(filtered[:st.session_state.settings.get('items_per_page', 20)]):
                 personalization = extract_personalization_data(order)
                 
+                # Extract values (now always returns a tuple, even if empty)
+                full_name = personalization[0] if personalization else ""
+                birthday = personalization[1] if personalization else ""
+                
                 # Check if we're editing this order
                 edit_key = f"edit_{order['name']}"
                 is_editing = st.session_state.get(edit_key, False)
@@ -1232,13 +1238,13 @@ def main():
                 col1, col2, col3, col4, col5 = st.columns([1, 2, 2, 2, 1])
                 
                 with col1:
-                    # Simpler approach - just check the value, update happens via button
+                    # Checkbox
                     is_checked = order['name'] in st.session_state.selected_orders
                     
                     if st.checkbox(
                         order['name'],
                         value=is_checked,
-                        key=f"cb_{order['name']}_{is_checked}"  # Key includes state to force update
+                        key=f"cb_{order['name']}_{is_checked}"
                     ):
                         if order['name'] not in st.session_state.selected_orders:
                             st.session_state.selected_orders.append(order['name'])
@@ -1248,34 +1254,35 @@ def main():
                 
                 with col2:
                     if is_editing:
-                        # Edit mode - show input field
+                        # Edit mode - show input field with current value
                         new_name = st.text_input(
                             "Full Name",
-                            value=personalization[0] if personalization else "",
+                            value=full_name,
                             key=f"edit_name_{order['name']}",
+                            placeholder="Enter full name",
                             label_visibility="collapsed"
                         )
                     else:
-                        # Display mode
-                        if personalization:
-                            st.write(f"**{personalization[0]}**")
+                        # Display mode - show value or "No data"
+                        if full_name:
+                            st.write(f"**{full_name}**")
                         else:
                             st.write("_No data_")
                 
                 with col3:
                     if is_editing:
-                        # Edit mode - show input field
+                        # Edit mode - show input field with current value
                         new_birthday = st.text_input(
                             "Birthday",
-                            value=personalization[1] if personalization else "",
+                            value=birthday,
                             placeholder="DD/MM/YYYY",
                             key=f"edit_birthday_{order['name']}",
                             label_visibility="collapsed"
                         )
                     else:
-                        # Display mode
-                        if personalization:
-                            st.write(f"🎂 {personalization[1]}")
+                        # Display mode - show value or dash
+                        if birthday:
+                            st.write(f"🎂 {birthday}")
                         else:
                             st.write("—")
                 
@@ -1284,41 +1291,34 @@ def main():
                     st.write(f"📅 {order_date.strftime('%b %d, %Y')}")
                 
                 with col5:
-                    if not personalization or personalization[0] == "" or personalization[1] == "":
-                        # Show edit button for orders with missing data
-                        if not is_editing:
-                            if st.button("✏️ Edit", key=f"btn_edit_{order['name']}", use_container_width=True):
-                                st.session_state[edit_key] = True
-                                st.rerun()
-                        else:
-                            # Show save button when editing
-                            if st.button("💾 Save", key=f"btn_save_{order['name']}", use_container_width=True):
-                                # Get the new values
-                                name_key = f"edit_name_{order['name']}"
-                                birthday_key = f"edit_birthday_{order['name']}"
-                                
-                                new_name = st.session_state.get(name_key, "")
-                                new_birthday = st.session_state.get(birthday_key, "")
-                                
-                                if new_name and new_birthday:
-                                    # Update order personalization
-                                    # Store in session state for this session
-                                    if 'order_edits' not in st.session_state:
-                                        st.session_state.order_edits = {}
-                                    
-                                    st.session_state.order_edits[order['name']] = {
-                                        'full_name': new_name,
-                                        'birthday': new_birthday
-                                    }
-                                    
-                                    st.session_state[edit_key] = False
-                                    st.success(f"Updated {order['name']}")
-                                    time.sleep(0.5)
-                                    st.rerun()
-                                else:
-                                    st.error("Please fill both fields")
+                    # Show edit/save button for ALL orders
+                    if not is_editing:
+                        if st.button("✏️", key=f"btn_edit_{order['name']}", use_container_width=True, help="Edit order"):
+                            st.session_state[edit_key] = True
+                            st.rerun()
                     else:
-                        st.write("")  # Empty column for orders with data
+                        # Show save/cancel buttons when editing
+                        if st.button("💾", key=f"btn_save_{order['name']}", use_container_width=True, help="Save changes"):
+                            # Get the new values
+                            name_key = f"edit_name_{order['name']}"
+                            birthday_key = f"edit_birthday_{order['name']}"
+                            
+                            new_name = st.session_state.get(name_key, "")
+                            new_birthday = st.session_state.get(birthday_key, "")
+                            
+                            # Store edits (even if empty, user might be clearing data)
+                            if 'order_edits' not in st.session_state:
+                                st.session_state.order_edits = {}
+                            
+                            st.session_state.order_edits[order['name']] = {
+                                'full_name': new_name,
+                                'birthday': new_birthday
+                            }
+                            
+                            st.session_state[edit_key] = False
+                            st.success(f"✓ Updated {order['name']}")
+                            time.sleep(0.3)
+                            st.rerun()
         
         else:
             st.info("Click 'Refresh Orders' to load unfulfilled orders")
