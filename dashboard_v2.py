@@ -981,17 +981,50 @@ Return ONLY the JSON object. Start with {{ and end with }}."""
                 progress_callback("❌ No text content in response")
             return {}
         
-        # Clean up markdown
-        text_content = text_content.replace("```json", "").replace("```", "").strip()
+        # Clean up markdown and any preamble
+        text_content = text_content.strip()
+        
+        # Remove markdown code blocks
+        text_content = text_content.replace("```json", "").replace("```", "")
+        
+        # Find the JSON object - look for first { and last }
+        start_idx = text_content.find("{")
+        end_idx = text_content.rfind("}")
+        
+        if start_idx == -1 or end_idx == -1:
+            if progress_callback:
+                progress_callback("❌ No JSON object found in response")
+            return {}
+        
+        json_text = text_content[start_idx:end_idx+1]
         
         # Parse JSON
-        research_data = json.loads(text_content)
+        research_data = json.loads(json_text)
         
         if progress_callback:
             progress_callback("✅ Research completed with verification")
         
         return research_data
         
+    except json.JSONDecodeError as e:
+        if progress_callback:
+            progress_callback(f"❌ JSON parsing error at line {e.lineno}, column {e.colno}")
+            
+            # Show preview of what was received
+            if 'text_content' in locals():
+                preview = text_content[:500] if len(text_content) > 500 else text_content
+                progress_callback(f"Response preview: {preview}")
+                
+                # Save to file for debugging if debug mode is on
+                if st.session_state.settings.get('debug_mode', False):
+                    debug_file = f"debug_response_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
+                    with open(debug_file, 'w') as f:
+                        f.write(f"Order: {month_name} {day}, {year}\n")
+                        f.write(f"Error: {str(e)}\n")
+                        f.write(f"Full response:\n{text_content}")
+                    progress_callback(f"Debug saved to {debug_file}")
+        
+        return {}
     except Exception as e:
         if progress_callback:
             progress_callback(f"❌ Error: {str(e)}")
