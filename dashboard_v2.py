@@ -787,13 +787,13 @@ Provide accurate Australian historical data in this exact JSON structure:
   "WorldPopulation": "VALUE ONLY e.g., 3.3 Billion",
   "AustraliaPopulation": "VALUE ONLY e.g., 11.6 million",
   "HistoricalEventDate1": "Year (1800s era) when event happened on {month_name} {day}",
-  "HistoricalEvent1": "Major historical event that happened on {month_name} {day} in the 1800s",
+  "HistoricalEvent1": "ONE COMPLETE SENTENCE (20-30 words) describing a major historical event that happened on {month_name} {day} in the 1800s. Include key details like who, what, where, and significance. Example format: 'On April 10, 1849, American inventor Walter Hunt received a patent for the modern safety pin, a simple yet revolutionary device he reportedly designed in just three hours to pay off a $15 debt.'",
   "HistoricalEventDate2": "Year (early 1900s) when event happened on {month_name} {day}",
-  "HistoricalEvent2": "Major historical event that happened on {month_name} {day} in early 1900s (1900-1940)",
+  "HistoricalEvent2": "ONE COMPLETE SENTENCE (20-30 words) describing a major historical event that happened on {month_name} {day} in early 1900s (1900-1940). Include key details about the event and its impact.",
   "HistoricalEventDate3": "Year (mid-late 1900s) when event happened on {month_name} {day}",
-  "HistoricalEvent3": "Major historical event that happened on {month_name} {day} in mid-late 1900s (1950-1990)",
+  "HistoricalEvent3": "ONE COMPLETE SENTENCE (20-30 words) describing a major historical event that happened on {month_name} {day} in mid-late 1900s (1950-1990). Include who was involved and why it mattered.",
   "HistoricalEventDate4": "Year (2000s-2020s) when event happened on {month_name} {day}",
-  "HistoricalEvent4": "Major historical event that happened on {month_name} {day} in 2000s-2020s",
+  "HistoricalEvent4": "ONE COMPLETE SENTENCE (20-30 words) describing a major historical event that happened on {month_name} {day} in 2000s-2020s. Provide context and significance of the event.",
   "YearsOfWages": "VALUE ONLY e.g., 4-5 years wages",
   "CadburyBarPrice": "VALUE ONLY e.g., 8c or 90c",
   "PetrolPrice": "VALUE ONLY e.g., $0.06 or $0.68",
@@ -840,6 +840,15 @@ REMEMBER:
   - Only use events from {year} if you cannot find events for that specific date
 - All dollar/price values must be CLEAN: just number + $ or c
 - Celebrity format: "Name - What they're known for" (NO birth dates)
+
+CRITICAL - HISTORICAL EVENTS DATE MATCHING:
+- VERIFY each HistoricalEvent actually occurred on {month_name} {day} in the year you provide
+- DO NOT guess or approximate - if you're not certain an event happened on {month_name} {day}, search for a different event
+- WRONG: Saying "April 10, 1818 - First Transcontinental Treaty" when it was signed February 22, 1819
+- RIGHT: Finding actual events that happened on {month_name} {day} like "April 10, 1849 - Safety pin patented"
+- Each HistoricalEvent MUST be a COMPLETE SENTENCE with details (20-30 words minimum)
+- WRONG: "RMS Titanic begins maiden voyage" 
+- RIGHT: "On April 10, 1912, the RMS Titanic departed Southampton on its ill-fated maiden voyage carrying over 2,200 passengers and crew across the Atlantic."
 
 Return ONLY the JSON object. Start with {{ and end with }}."""
 
