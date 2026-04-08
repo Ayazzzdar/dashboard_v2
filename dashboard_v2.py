@@ -749,6 +749,11 @@ def research_with_claude(month_name: str, day: int, year: int, api_key: str, pro
     prompt = f"""Research historical data for {month_name} {day}, {year} in Australia. 
 Return ONLY valid JSON (no markdown, no code blocks, no preamble).
 
+⚠️ CRITICAL - VERIFY ALL DATA BEFORE RESPONDING ⚠️
+You MUST verify the accuracy of every single piece of data you provide.
+DO NOT guess, estimate, or approximate any information.
+If you cannot verify a piece of data with certainty, leave it blank or use a placeholder.
+
 CRITICAL FORMATTING RULES:
 - All monetary values: ONLY the number with $ or c symbol (e.g., "$2,080" or "8c")
 - All population values: ONLY the number with units (e.g., "3.3 Billion" or "11.6 million")
@@ -767,9 +772,9 @@ Provide accurate Australian historical data in this exact JSON structure:
   "IncomingPM": "Name of the PM who came to power AFTER the current PM (regardless of what year they took office)",
   "Monarch": "Name of British monarch in {year}",
   "AverageSalary": "VALUE ONLY e.g., $2,080",
-  "Celebrity1": "Name - Description (NO DATES)",
-  "Celebrity2": "Name - Description (NO DATES)",
-  "Celebrity3": "Name - Description (NO DATES)",
+  "Celebrity1": "Name - Description (NO DATES). MUST be a celebrity actually BORN on {month_name} {day} (any year). Example: 'Tim Roth - British actor known for Reservoir Dogs'",
+  "Celebrity2": "Name - Description (NO DATES). MUST be a different celebrity actually BORN on {month_name} {day} (any year).",
+  "Celebrity3": "Name - Description (NO DATES). MUST be a third celebrity actually BORN on {month_name} {day} (any year).",
   "NewsEvent1": "Major world event that happened on {month_name} {day} in ANY year",
   "NewsEvent2": "Second major world event that happened on {month_name} {day} in ANY year",
   "NewsEvent3": "Third major world event that happened on {month_name} {day} in ANY year",
@@ -832,23 +837,73 @@ Provide accurate Australian historical data in this exact JSON structure:
   "GirlName10": "10th"
 }}
 
-REMEMBER: 
-- NewsEvent1/2/3 must be events that happened on {month_name} {day} in ANY YEAR (not just {year})
-- HistoricalEvent1/2/3/4 must ALSO be events that happened on {month_name} {day} across DIFFERENT ERAS
-  - Try to find: one from 1800s, one from early 1900s, one from mid 1900s, one from 2000s
-  - All should be on {month_name} {day} (the DATE matters, not the year)
-  - Only use events from {year} if you cannot find events for that specific date
-- All dollar/price values must be CLEAN: just number + $ or c
-- Celebrity format: "Name - What they're known for" (NO birth dates)
+⚠️ MANDATORY VERIFICATION FOR ALL DATA ⚠️
 
-CRITICAL - HISTORICAL EVENTS DATE MATCHING:
-- VERIFY each HistoricalEvent actually occurred on {month_name} {day} in the year you provide
-- DO NOT guess or approximate - if you're not certain an event happened on {month_name} {day}, search for a different event
-- WRONG: Saying "April 10, 1818 - First Transcontinental Treaty" when it was signed February 22, 1819
-- RIGHT: Finding actual events that happened on {month_name} {day} like "April 10, 1849 - Safety pin patented"
-- Each HistoricalEvent MUST be a COMPLETE SENTENCE with details (20-30 words minimum)
-- WRONG: "RMS Titanic begins maiden voyage" 
-- RIGHT: "On April 10, 1912, the RMS Titanic departed Southampton on its ill-fated maiden voyage carrying over 2,200 passengers and crew across the Atlantic."
+BEFORE RETURNING ANY DATA, YOU MUST VERIFY:
+
+1. **CELEBRITIES (Celebrity1/2/3):**
+   - VERIFY each person was ACTUALLY BORN on {month_name} {day}
+   - Check birth date, not just born in {year}
+   - Use worldwide celebrities if no Australians available
+   - DO NOT repeat the same person across different orders
+
+2. **HISTORICAL EVENTS (HistoricalEvent1/2/3/4 + dates):**
+   - VERIFY each event ACTUALLY HAPPENED on {month_name} {day}
+   - The year can vary (1800s, 1900s, 2000s) but DATE must be {month_name} {day}
+   - Write FULL SENTENCES (20-30 words) with context
+   - DO NOT guess dates
+
+3. **NEWS EVENTS (NewsEvent1/2/3):**
+   - VERIFY these happened on {month_name} {day} in ANY year
+   - Worldwide events acceptable
+
+4. **SPORTS WINNERS (NRL, AFL, Bathurst, AusOpen):**
+   - VERIFY actual winners/champions for {year}
+   - DO NOT guess team or player names
+   - If uncertain, leave blank
+
+5. **ENTERTAINMENT (BestActor, BestActress, Number1Song):**
+   - VERIFY actual Oscar winners for {year}
+   - VERIFY ARIA #1 song for {year} (or worldwide if ARIA didn't exist)
+   - DO NOT guess
+
+6. **PRICES & ECONOMICS (Salary, House, Milk, Bread, Eggs, Petrol, Cadbury, Stamp, Cinema):**
+   - VERIFY historical Australian prices for {year}
+   - Use actual records, not estimates
+   - Format: VALUE ONLY (e.g., "$2,080" or "8c")
+
+7. **GOVERNMENT (PrimeMinister, IncomingPM, Monarch):**
+   - VERIFY who was actually serving in {year}
+   - IncomingPM = who came AFTER current PM (even if years later)
+
+8. **DEMOGRAPHICS (Population, Births):**
+   - VERIFY actual Australian/world population for {year}
+   - VERIFY birth statistics for {year}
+
+9. **BABY NAMES (Top 10 Boys/Girls):**
+   - VERIFY actual Australian name popularity for {year}
+   - DO NOT use current popular names
+   - If data unavailable, use closest year or leave blank
+
+10. **CULTURE (TopBook, TVShow, FashionTrend, Technology):**
+    - VERIFY what was actually popular/relevant in {year}
+    - Provide one-sentence descriptions
+
+✓ VERIFICATION CHECKLIST BEFORE SUBMITTING:
+- [ ] All 3 celebrities born on {month_name} {day}?
+- [ ] All 4 historical events happened on {month_name} {day}?
+- [ ] All sports winners match {year}?
+- [ ] All prices are verified for {year}?
+- [ ] PM/Monarch correct for {year}?
+- [ ] Baby names verified for {year}?
+- [ ] No guesses or estimates included?
+
+IF YOU CANNOT VERIFY A FIELD WITH CERTAINTY:
+- Leave it blank OR
+- Use a close approximation with disclaimer OR
+- Skip that field entirely
+
+BETTER TO HAVE BLANK FIELDS THAN WRONG DATA.
 
 Return ONLY the JSON object. Start with {{ and end with }}."""
 
