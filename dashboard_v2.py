@@ -766,7 +766,9 @@ If you are NOT CERTAIN about a date, DO NOT include that item. Better to skip th
 Return ONLY valid JSON (no markdown, no preambles, no explanations).
 
 CRITICAL FORMATTING RULES:
-- All monetary values: ONLY the number with $ or c symbol (e.g., "$2,080" or "8c")
+- All monetary values: AUSTRALIAN DOLLARS ($) or CENTS (c) ONLY
+  ⚠️ NEVER use British pounds (£), shillings (s), or pence (d)
+  ⚠️ Convert all pre-1966 prices to approximate Australian dollar equivalents
 - All population values: ONLY the number with units (e.g., "3.3 Billion" or "11.6 million")
 - All percentage values: ONLY the number with % (e.g., "3.2%")
 - Celebrity names: Name - Description (NO DATES, e.g., "Steve Seagal - American actor and martial artist")
@@ -936,15 +938,31 @@ Number1Song:
 PRICES & ECONOMICS - HISTORICAL DATA FOR {year}
 ═══════════════════════════════════════════════════════
 
-All prices must reflect {year} Australian values:
-- AverageSalary: Annual wage (e.g., "$2,080" or "£520")
-- AverageHouse: House price (e.g., "$8,500")
-- MilkPrice: Per pint/litre (e.g., "$0.15" or "8c")
-- BreadPrice: Per loaf (e.g., "$0.12" or "5c")
-- EggsPrice: Per dozen (e.g., "$0.45" or "15c")
-- PetrolPrice: Per gallon/litre (e.g., "$0.18" or "6c")
+⚠️ CRITICAL: ALL PRICES MUST BE IN AUSTRALIAN DOLLARS ($) OR CENTS (c)
+⚠️ DO NOT USE British pounds (£), shillings (s), or pence (d)
+⚠️ Convert to Australian decimal currency
+
+All prices must reflect {year} Australian values IN AUSTRALIAN CURRENCY:
+- AverageSalary: Annual wage in AUD (e.g., "$520" or "$2,080")
+- AverageHouse: House price in AUD (e.g., "$8,500" or "$1,200")
+- MilkPrice: Per pint/litre in AUD (e.g., "$0.15" or "8c")
+- BreadPrice: Per loaf in AUD (e.g., "$0.12" or "5c")
+- EggsPrice: Per dozen in AUD (e.g., "$0.45" or "15c")
+- PetrolPrice: Per gallon/litre in AUD (e.g., "$0.18" or "6c")
+- CadburyBarPrice: In AUD (e.g., "5c" or "$0.05")
+- StampPrice: In AUD (e.g., "3c" or "$0.03")
+- CinemaPrice: In AUD (e.g., "$0.50" or "50c")
+
+CURRENCY RULES:
+- Before 1966: Australia used pounds/shillings/pence - CONVERT to approximate dollar value
+  Example: £312 → "$624" (roughly £1 = $2 conversion)
+  Example: 6d (sixpence) → "5c" (approximate conversion)
+  Example: 2s 6d (two shillings sixpence) → "25c" (approximate)
+- 1966 onwards: Use decimal Australian dollars directly
+- Always use $ or c symbols, NEVER £, s, or d
 
 Format: VALUE ONLY (just the number with $ or c, no words)
+Examples: "$2,080" or "8c" or "$0.15"
 
 ═══════════════════════════════════════════════════════
 GOVERNMENT - VERIFY WHO SERVED IN {year}
