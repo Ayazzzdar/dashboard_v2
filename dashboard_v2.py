@@ -749,6 +749,15 @@ def research_with_claude(month_name: str, day: int, year: int, api_key: str, pro
     prompt = f"""Research historical data for {month_name} {day}, {year} in Australia. 
 Return ONLY valid JSON (no markdown, no code blocks, no preamble).
 
+🔍 YOU HAVE ACCESS TO WEB SEARCH - USE IT TO VERIFY ALL DATA 🔍
+
+MANDATORY: You MUST use the web_search tool to verify dates before including any data:
+- Search for "Celebrity Name birthday" to verify birth dates
+- Search for "Historical Event date" to verify when events happened
+- Search for "Sports winner year" to verify championship winners
+- Search for "Song chart year" to verify #1 songs
+- DO NOT rely on your training data alone - SEARCH and VERIFY
+
 ⚠️ CRITICAL - VERIFY ALL DATA BEFORE RESPONDING ⚠️
 You MUST verify the accuracy of every single piece of data you provide.
 DO NOT guess, estimate, or approximate any information.
@@ -839,55 +848,74 @@ Provide accurate Australian historical data in this exact JSON structure:
 
 ⚠️ MANDATORY VERIFICATION FOR ALL DATA ⚠️
 
+🔍 USE WEB SEARCH FOR EVERY FIELD - EXAMPLES:
+
 BEFORE RETURNING ANY DATA, YOU MUST VERIFY:
 
 1. **CELEBRITIES (Celebrity1/2/3):**
+   - Search: "Sean Connery birthday" → Verify born August 25
+   - Search: "John Travolta birthday" → Discover born February 18 (NOT August 25)
+   - Search: "celebrities born on {month_name} {day}"
    - VERIFY each person was ACTUALLY BORN on {month_name} {day}
-   - Check birth date, not just born in {year}
    - Use worldwide celebrities if no Australians available
    - DO NOT repeat the same person across different orders
 
 2. **HISTORICAL EVENTS (HistoricalEvent1/2/3/4 + dates):**
+   - Search: "Titanic departure date Queenstown" → Verify April 11, 1912
+   - Search: "events that happened on {month_name} {day}"
+   - Search: "what happened on {month_name} {day} 1800s"
    - VERIFY each event ACTUALLY HAPPENED on {month_name} {day}
    - The year can vary (1800s, 1900s, 2000s) but DATE must be {month_name} {day}
    - Write FULL SENTENCES (20-30 words) with context
-   - DO NOT guess dates
+   - DO NOT include events from wrong dates
 
 3. **NEWS EVENTS (NewsEvent1/2/3):**
+   - Search: "major events {month_name} {day}"
    - VERIFY these happened on {month_name} {day} in ANY year
    - Worldwide events acceptable
 
 4. **SPORTS WINNERS (NRL, AFL, Bathurst, AusOpen):**
+   - Search: "NRL premiership winner {year}"
+   - Search: "AFL grand final winner {year}"
+   - Search: "Bathurst 1000 winner {year}"
+   - Search: "Australian Open winner {year}"
    - VERIFY actual winners/champions for {year}
    - DO NOT guess team or player names
-   - If uncertain, leave blank
 
 5. **ENTERTAINMENT (BestActor, BestActress, Number1Song):**
+   - Search: "Oscar Best Actor {year}"
+   - Search: "Oscar Best Actress {year}"
+   - Search: "ARIA number 1 song {year}" or "Billboard #1 song {year}"
    - VERIFY actual Oscar winners for {year}
    - VERIFY ARIA #1 song for {year} (or worldwide if ARIA didn't exist)
-   - DO NOT guess
 
-6. **PRICES & ECONOMICS (Salary, House, Milk, Bread, Eggs, Petrol, Cadbury, Stamp, Cinema):**
+6. **PRICES & ECONOMICS (Salary, House, Milk, Bread, Eggs, Petrol, etc.):**
+   - Search: "average salary Australia {year}"
+   - Search: "house prices Australia {year}"
+   - Search: "cost of milk bread {year} Australia"
    - VERIFY historical Australian prices for {year}
-   - Use actual records, not estimates
    - Format: VALUE ONLY (e.g., "$2,080" or "8c")
 
 7. **GOVERNMENT (PrimeMinister, IncomingPM, Monarch):**
+   - Search: "Australian Prime Minister {year}"
+   - Search: "who came after [current PM name]"
+   - Search: "British monarch {year}"
    - VERIFY who was actually serving in {year}
-   - IncomingPM = who came AFTER current PM (even if years later)
 
-8. **DEMOGRAPHICS (Population, Births):**
-   - VERIFY actual Australian/world population for {year}
-   - VERIFY birth statistics for {year}
-
-9. **BABY NAMES (Top 10 Boys/Girls):**
+8. **BABY NAMES (Top 10 Boys/Girls):**
+   - Search: "most popular baby names Australia {year}"
    - VERIFY actual Australian name popularity for {year}
-   - DO NOT use current popular names
    - If data unavailable, use closest year or leave blank
 
-10. **CULTURE (TopBook, TVShow, FashionTrend, Technology):**
-    - VERIFY what was actually popular/relevant in {year}
-    - Provide one-sentence descriptions
+9. **CULTURE (TopBook, TVShow, FashionTrend, Technology):**
+   - Search: "popular books {year}"
+   - Search: "TV shows {year}"
+   - VERIFY what was actually popular/relevant in {year}
+
+10. **DEMOGRAPHICS (Population, Births):**
+    - Search: "Australia population {year}"
+    - Search: "world population {year}"
+    - VERIFY actual statistics for {year}
 
 ✓ VERIFICATION CHECKLIST BEFORE SUBMITTING:
 - [ ] All 3 celebrities born on {month_name} {day}?
@@ -922,7 +950,13 @@ Return ONLY the JSON object. Start with {{ and end with }}."""
         "messages": [{
             "role": "user",
             "content": prompt
-        }]
+        }],
+        "tools": [
+            {
+                "type": "web_search_20250305",
+                "name": "web_search"
+            }
+        ]
     }
     
     try:
@@ -934,7 +968,18 @@ Return ONLY the JSON object. Start with {{ and end with }}."""
             return {}
         
         result = response.json()
-        text_content = result["content"][0]["text"]
+        
+        # Handle tool use - Claude may use web_search before responding
+        # Extract the final text content (after any tool use)
+        text_content = ""
+        for block in result.get("content", []):
+            if block.get("type") == "text":
+                text_content += block.get("text", "")
+        
+        if not text_content:
+            if progress_callback:
+                progress_callback("❌ No text content in response")
+            return {}
         
         # Clean up markdown
         text_content = text_content.replace("```json", "").replace("```", "").strip()
@@ -943,7 +988,7 @@ Return ONLY the JSON object. Start with {{ and end with }}."""
         research_data = json.loads(text_content)
         
         if progress_callback:
-            progress_callback("✅ Research completed")
+            progress_callback("✅ Research completed with verification")
         
         return research_data
         
