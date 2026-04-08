@@ -746,22 +746,24 @@ def research_with_claude(month_name: str, day: int, year: int, api_key: str, pro
     if progress_callback:
         progress_callback("🔍 Researching with Claude API...")
     
-    prompt = f"""Research historical data for {month_name} {day}, {year} in Australia. 
-Return ONLY valid JSON (no markdown, no code blocks, no preamble).
+    prompt = f"""You are a historical research expert. Research accurate historical data for {month_name} {day}, {year} in Australia.
 
-🔍 YOU HAVE ACCESS TO WEB SEARCH - USE IT TO VERIFY ALL DATA 🔍
+🎯 MISSION: Provide 100% ACCURATE, VERIFIABLE data. Accuracy is MORE important than speed.
 
-MANDATORY: You MUST use the web_search tool to verify dates before including any data:
-- Search for "Celebrity Name birthday" to verify birth dates
-- Search for "Historical Event date" to verify when events happened
-- Search for "Sports winner year" to verify championship winners
-- Search for "Song chart year" to verify #1 songs
-- DO NOT rely on your training data alone - SEARCH and VERIFY
+CRITICAL RULES:
+1. CELEBRITIES: ONLY people ACTUALLY born on {month_name} {day} (verify the date in your knowledge)
+2. HISTORICAL EVENTS: ONLY events that ACTUALLY happened on {month_name} {day} (verify the date)
+3. SPORTS/ENTERTAINMENT: ONLY actual winners/champions for {year} (verify the year)
+4. PRICES/DATA: Use your most reliable historical knowledge for {year}
 
-⚠️ CRITICAL - VERIFY ALL DATA BEFORE RESPONDING ⚠️
-You MUST verify the accuracy of every single piece of data you provide.
-DO NOT guess, estimate, or approximate any information.
-If you cannot verify a piece of data with certainty, leave it blank or use a placeholder.
+⚠️ TRIPLE-CHECK THESE BEFORE INCLUDING:
+- Celebrity birthdays: Is their birthday REALLY {month_name} {day}?
+- Historical event dates: Did this REALLY happen on {month_name} {day}?
+- Sports winners: Is this the ACTUAL winner for {year}?
+
+If you are NOT CERTAIN about a date, DO NOT include that item. Better to skip than be wrong.
+
+Return ONLY valid JSON (no markdown, no preambles, no explanations).
 
 CRITICAL FORMATTING RULES:
 - All monetary values: ONLY the number with $ or c symbol (e.g., "$2,080" or "8c")
@@ -846,92 +848,133 @@ Provide accurate Australian historical data in this exact JSON structure:
   "GirlName10": "10th"
 }}
 
-⚠️ MANDATORY VERIFICATION FOR ALL DATA ⚠️
+⚠️ DETAILED ACCURACY REQUIREMENTS - READ CAREFULLY ⚠️
 
-🔍 USE WEB SEARCH FOR EVERY FIELD - EXAMPLES:
+═══════════════════════════════════════════════════════
+CELEBRITIES - BIRTH DATE MUST BE {month_name} {day}
+═══════════════════════════════════════════════════════
 
-BEFORE RETURNING ANY DATA, YOU MUST VERIFY:
+VERIFICATION PROCESS:
+1. Think: "Is this person REALLY born on {month_name} {day}?"
+2. Check your knowledge carefully
+3. Only include if you are CERTAIN the birth date matches
 
-1. **CELEBRITIES (Celebrity1/2/3):**
-   - Search: "Sean Connery birthday" → Verify born August 25
-   - Search: "John Travolta birthday" → Discover born February 18 (NOT August 25)
-   - Search: "celebrities born on {month_name} {day}"
-   - VERIFY each person was ACTUALLY BORN on {month_name} {day}
-   - Use worldwide celebrities if no Australians available
-   - DO NOT repeat the same person across different orders
+EXAMPLES OF WRONG DATES (DO NOT REPEAT THESE MISTAKES):
+❌ John Travolta for August 25 → Actually born February 18
+❌ Olivia Newton-John for August 25 → Actually born September 26
+❌ Paul Hogan for August 25 → Actually born October 8
+❌ Helen Reddy for October 24 → Actually born October 25
 
-2. **HISTORICAL EVENTS (HistoricalEvent1/2/3/4 + dates):**
-   - Search: "Titanic departure date Queenstown" → Verify April 11, 1912
-   - Search: "events that happened on {month_name} {day}"
-   - Search: "what happened on {month_name} {day} 1800s"
-   - VERIFY each event ACTUALLY HAPPENED on {month_name} {day}
-   - The year can vary (1800s, 1900s, 2000s) but DATE must be {month_name} {day}
-   - Write FULL SENTENCES (20-30 words) with context
-   - DO NOT include events from wrong dates
+EXAMPLES OF CORRECT DATES:
+✅ Sean Connery for August 25 → Born August 25, 1930
+✅ Tim Burton for August 25 → Born August 25, 1958
+✅ Blake Lively for August 25 → Born August 25, 1987
 
-3. **NEWS EVENTS (NewsEvent1/2/3):**
-   - Search: "major events {month_name} {day}"
-   - VERIFY these happened on {month_name} {day} in ANY year
-   - Worldwide events acceptable
+USE WORLDWIDE CELEBRITIES - not limited to Australia
+EACH PERSON MUST BE DIFFERENT - no repeats
 
-4. **SPORTS WINNERS (NRL, AFL, Bathurst, AusOpen):**
-   - Search: "NRL premiership winner {year}"
-   - Search: "AFL grand final winner {year}"
-   - Search: "Bathurst 1000 winner {year}"
-   - Search: "Australian Open winner {year}"
-   - VERIFY actual winners/champions for {year}
-   - DO NOT guess team or player names
+═══════════════════════════════════════════════════════
+HISTORICAL EVENTS - MUST HAVE OCCURRED ON {month_name} {day}
+═══════════════════════════════════════════════════════
 
-5. **ENTERTAINMENT (BestActor, BestActress, Number1Song):**
-   - Search: "Oscar Best Actor {year}"
-   - Search: "Oscar Best Actress {year}"
-   - Search: "ARIA number 1 song {year}" or "Billboard #1 song {year}"
-   - VERIFY actual Oscar winners for {year}
-   - VERIFY ARIA #1 song for {year} (or worldwide if ARIA didn't exist)
+VERIFICATION PROCESS:
+1. Think: "Did this event REALLY happen on {month_name} {day}?"
+2. The YEAR can vary, but the MONTH and DAY must be {month_name} {day}
+3. Only include if you are CERTAIN about the date
 
-6. **PRICES & ECONOMICS (Salary, House, Milk, Bread, Eggs, Petrol, etc.):**
-   - Search: "average salary Australia {year}"
-   - Search: "house prices Australia {year}"
-   - Search: "cost of milk bread {year} Australia"
-   - VERIFY historical Australian prices for {year}
-   - Format: VALUE ONLY (e.g., "$2,080" or "8c")
+EXAMPLES OF WRONG DATES (DO NOT REPEAT):
+❌ Titanic left Queenstown on April 10 → Actually April 11, 1912
+❌ Buchenwald liberated April 10 → Actually April 11, 1945
+❌ Treaty signed April 10, 1818 → Actually February 22, 1819
 
-7. **GOVERNMENT (PrimeMinister, IncomingPM, Monarch):**
-   - Search: "Australian Prime Minister {year}"
-   - Search: "who came after [current PM name]"
-   - Search: "British monarch {year}"
-   - VERIFY who was actually serving in {year}
+EXAMPLES OF CORRECT DATES:
+✅ Safety pin patented April 10, 1849 → Correct
+✅ Paul McCartney announced Beatles breakup April 10, 1970 → Correct
+✅ Polish plane crash April 10, 2010 → Correct
 
-8. **BABY NAMES (Top 10 Boys/Girls):**
-   - Search: "most popular baby names Australia {year}"
-   - VERIFY actual Australian name popularity for {year}
-   - If data unavailable, use closest year or leave blank
+EACH EVENT MUST BE A FULL SENTENCE (25-35 words):
+Example: "On April 10, 1912, the RMS Titanic departed from Southampton, England on its maiden voyage across the Atlantic, carrying over 2,200 passengers and crew toward its tragic fate."
 
-9. **CULTURE (TopBook, TVShow, FashionTrend, Technology):**
-   - Search: "popular books {year}"
-   - Search: "TV shows {year}"
-   - VERIFY what was actually popular/relevant in {year}
+Find 4 events from DIFFERENT eras:
+- 1800s (1800-1899)
+- Early 1900s (1900-1945)
+- Mid-Late 1900s (1946-1999)
+- 2000s-2020s (2000-present)
 
-10. **DEMOGRAPHICS (Population, Births):**
-    - Search: "Australia population {year}"
-    - Search: "world population {year}"
-    - VERIFY actual statistics for {year}
+═══════════════════════════════════════════════════════
+SPORTS WINNERS - MUST BE ACTUAL WINNERS FOR {year}
+═══════════════════════════════════════════════════════
 
-✓ VERIFICATION CHECKLIST BEFORE SUBMITTING:
-- [ ] All 3 celebrities born on {month_name} {day}?
-- [ ] All 4 historical events happened on {month_name} {day}?
-- [ ] All sports winners match {year}?
-- [ ] All prices are verified for {year}?
-- [ ] PM/Monarch correct for {year}?
-- [ ] Baby names verified for {year}?
-- [ ] No guesses or estimates included?
+NRL Winner: Use your knowledge of {year} NRL/NSWRL premiership
+- Before 1998: Use NSWRL premiership winner
+- 1998+: Use NRL premiership winner
+- Provide full team name (e.g., "Manly-Warringah Sea Eagles")
 
-IF YOU CANNOT VERIFY A FIELD WITH CERTAINTY:
-- Leave it blank OR
-- Use a close approximation with disclaimer OR
-- Skip that field entirely
+AFL Winner: Actual {year} VFL/AFL premiership winner
+- Before 1990: VFL Grand Final winner
+- 1990+: AFL Grand Final winner
 
-BETTER TO HAVE BLANK FIELDS THAN WRONG DATA.
+Bathurst 1000: Actual winner(s) of {year} race
+- Include driver names
+
+Australian Open: Singles champions for {year}
+- Format: "Men: [Name], Women: [Name]"
+
+═══════════════════════════════════════════════════════
+ENTERTAINMENT - VERIFY YEAR {year}
+═══════════════════════════════════════════════════════
+
+Best Actor/Actress: Academy Awards for {year} films
+- Format: "Actor Name - Film Title"
+
+Number1Song: 
+- If {year} ≥ 1988: Use ARIA Charts #1 song for {year}
+- If {year} < 1988: Use worldwide/UK/US #1 song for {year}
+- Format: "Song Title - Artist Name"
+
+═══════════════════════════════════════════════════════
+PRICES & ECONOMICS - HISTORICAL DATA FOR {year}
+═══════════════════════════════════════════════════════
+
+All prices must reflect {year} Australian values:
+- AverageSalary: Annual wage (e.g., "$2,080" or "£520")
+- AverageHouse: House price (e.g., "$8,500")
+- MilkPrice: Per pint/litre (e.g., "$0.15" or "8c")
+- BreadPrice: Per loaf (e.g., "$0.12" or "5c")
+- EggsPrice: Per dozen (e.g., "$0.45" or "15c")
+- PetrolPrice: Per gallon/litre (e.g., "$0.18" or "6c")
+
+Format: VALUE ONLY (just the number with $ or c, no words)
+
+═══════════════════════════════════════════════════════
+GOVERNMENT - VERIFY WHO SERVED IN {year}
+═══════════════════════════════════════════════════════
+
+PrimeMinister: Who was Australian PM during {year}?
+IncomingPM: Who became PM AFTER the current PM? (can be years later)
+Monarch: Who was British monarch during {year}?
+
+═══════════════════════════════════════════════════════
+BABY NAMES - ACTUAL AUSTRALIAN POPULARITY FOR {year}
+═══════════════════════════════════════════════════════
+
+Top 10 boys and girls names in Australia for {year}
+- Use historical records if available
+- If exact {year} unavailable, use closest decade
+- Do NOT use modern popular names for old years
+
+═══════════════════════════════════════════════════════
+FINAL CHECKLIST BEFORE SUBMITTING
+═══════════════════════════════════════════════════════
+
+Ask yourself:
+□ Are ALL 3 celebrities REALLY born on {month_name} {day}?
+□ Did ALL 4 historical events REALLY happen on {month_name} {day}?
+□ Are ALL sports winners the ACTUAL winners for {year}?
+□ Do ALL prices reflect {year} (not modern prices)?
+□ Is the PM/Monarch correct for {year}?
+
+If ANY answer is "I'm not sure", go back and verify that field.
 
 Return ONLY the JSON object. Start with {{ and end with }}."""
 
@@ -942,21 +985,16 @@ Return ONLY the JSON object. Start with {{ and end with }}."""
         "content-type": "application/json"
     }
     
-    timeout = st.session_state.settings.get('timeout_duration', 120)
+    timeout = st.session_state.settings.get('timeout_duration', 180)
     
     data = {
         "model": "claude-sonnet-4-20250514",
-        "max_tokens": 4000,
+        "max_tokens": 8192,  # Maximum allowed for comprehensive, detailed responses
+        "temperature": 0.3,  # Lower temperature for more accurate, factual responses
         "messages": [{
             "role": "user",
             "content": prompt
-        }],
-        "tools": [
-            {
-                "type": "web_search_20250305",
-                "name": "web_search"
-            }
-        ]
+        }]
     }
     
     try:
@@ -968,63 +1006,26 @@ Return ONLY the JSON object. Start with {{ and end with }}."""
             return {}
         
         result = response.json()
+        text_content = result["content"][0]["text"]
         
-        # Handle tool use - Claude may use web_search before responding
-        # Extract the final text content (after any tool use)
-        text_content = ""
-        for block in result.get("content", []):
-            if block.get("type") == "text":
-                text_content += block.get("text", "")
+        # Clean up markdown
+        text_content = text_content.replace("```json", "").replace("```", "").strip()
         
-        if not text_content:
-            if progress_callback:
-                progress_callback("❌ No text content in response")
-            return {}
-        
-        # Clean up markdown and any preamble
-        text_content = text_content.strip()
-        
-        # Remove markdown code blocks
-        text_content = text_content.replace("```json", "").replace("```", "")
-        
-        # Find the JSON object - look for first { and last }
+        # Find JSON object
         start_idx = text_content.find("{")
         end_idx = text_content.rfind("}")
         
-        if start_idx == -1 or end_idx == -1:
-            if progress_callback:
-                progress_callback("❌ No JSON object found in response")
-            return {}
-        
-        json_text = text_content[start_idx:end_idx+1]
+        if start_idx != -1 and end_idx != -1:
+            text_content = text_content[start_idx:end_idx+1]
         
         # Parse JSON
-        research_data = json.loads(json_text)
+        research_data = json.loads(text_content)
         
         if progress_callback:
-            progress_callback("✅ Research completed with verification")
+            progress_callback("✅ Research completed")
         
         return research_data
         
-    except json.JSONDecodeError as e:
-        if progress_callback:
-            progress_callback(f"❌ JSON parsing error at line {e.lineno}, column {e.colno}")
-            
-            # Show preview of what was received
-            if 'text_content' in locals():
-                preview = text_content[:500] if len(text_content) > 500 else text_content
-                progress_callback(f"Response preview: {preview}")
-                
-                # Save to file for debugging if debug mode is on
-                if st.session_state.settings.get('debug_mode', False):
-                    debug_file = f"debug_response_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
-                    with open(debug_file, 'w') as f:
-                        f.write(f"Order: {month_name} {day}, {year}\n")
-                        f.write(f"Error: {str(e)}\n")
-                        f.write(f"Full response:\n{text_content}")
-                    progress_callback(f"Debug saved to {debug_file}")
-        
-        return {}
     except Exception as e:
         if progress_callback:
             progress_callback(f"❌ Error: {str(e)}")
