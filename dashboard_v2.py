@@ -31,9 +31,8 @@ st.set_page_config(
 # ============================================================================
 
 def apply_custom_theme(settings):
-    """Apply modern sleek design using The Day Archive brand colors"""
+    """Apply thin, clean design like Plecto using The Day Archive brand colors"""
     
-    # Extract user's brand colors
     primary = settings.get('primary_color', '#1E3A8A')
     accent = settings.get('accent_color', '#D1D5DB')
     bg = settings.get('background_color', '#000000')
@@ -42,115 +41,188 @@ def apply_custom_theme(settings):
     
     st.markdown(f"""
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
         
+        /* Clean minimal background */
         .stApp {{
             background-color: {bg};
             color: {text};
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-family: 'Inter', sans-serif;
+            font-weight: 400;
         }}
         
+        /* Thin sidebar */
         [data-testid="stSidebar"] {{
             background-color: {sidebar};
-            border-right: 1px solid rgba(209, 213, 219, 0.1);
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
         }}
         
-        [data-testid="stSidebar"] * {{
-            color: {text} !important;
-        }}
+        [data-testid="stSidebar"] * {{ color: {text} !important; }}
         
+        /* Thin clean cards - minimal padding */
         .element-container {{
-            background: rgba(31, 41, 55, 0.5);
-            border-radius: 12px;
-            padding: 1rem;
-            margin-bottom: 0.8rem;
-            border: 1px solid rgba(30, 58, 138, 0.2);
-            backdrop-filter: blur(10px);
-            transition: all 0.3s ease;
+            background: transparent;
+            border-radius: 8px;
+            padding: 0.3rem 0;
+            margin-bottom: 0.2rem;
         }}
         
-        .element-container:hover {{
-            border-color: rgba(30, 58, 138, 0.4);
-            box-shadow: 0 8px 16px rgba(30, 58, 138, 0.15);
-            transform: translateY(-2px);
+        /* Minimal headers */
+        h1 {{ 
+            color: {text} !important; 
+            font-weight: 600 !important; 
+            font-size: 1.5rem !important; 
+            margin-bottom: 1rem !important;
+            letter-spacing: -0.02em;
         }}
         
-        h1 {{ color: {text} !important; font-weight: 700 !important; font-size: 2rem !important; letter-spacing: -0.02em !important; }}
-        h2 {{ color: {text} !important; font-weight: 600 !important; font-size: 1.5rem !important; }}
-        h3 {{ color: {accent} !important; font-weight: 600 !important; font-size: 1.1rem !important; }}
+        h2 {{ 
+            color: {text} !important; 
+            font-weight: 500 !important; 
+            font-size: 1.1rem !important;
+            margin-bottom: 0.5rem !important;
+        }}
         
+        h3 {{ 
+            color: {accent} !important; 
+            font-weight: 500 !important; 
+            font-size: 0.95rem !important;
+        }}
+        
+        /* Thin clean buttons */
         .stButton>button {{
             background: {primary};
             color: white;
             border: none;
-            border-radius: 10px;
-            padding: 0.6rem 1.5rem;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 14px rgba(30, 58, 138, 0.3);
+            border-radius: 6px;
+            padding: 0.4rem 1rem;
+            font-weight: 500;
+            font-size: 0.85rem;
+            transition: all 0.2s ease;
+            box-shadow: none;
+            height: 32px;
         }}
         
         .stButton>button:hover {{
             background: #1e40af;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(30, 58, 138, 0.4);
+            box-shadow: 0 2px 8px rgba(30, 58, 138, 0.2);
         }}
         
-        .stTextInput>div>div>input, .stSelectbox>div>div>select {{
-            background: rgba(31, 41, 55, 0.6) !important;
+        /* Clean minimal inputs */
+        .stTextInput>div>div>input, 
+        .stSelectbox>div>div>select {{
+            background: rgba(255, 255, 255, 0.03) !important;
             color: {text} !important;
-            border: 1px solid rgba(30, 58, 138, 0.3) !important;
-            border-radius: 8px !important;
-            padding: 0.6rem 0.8rem !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            border-radius: 6px !important;
+            padding: 0.4rem 0.6rem !important;
+            font-size: 0.85rem !important;
+            height: 32px !important;
         }}
         
         .stTextInput>div>div>input:focus {{
             border-color: {primary} !important;
-            box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.2) !important;
+            box-shadow: 0 0 0 1px {primary} !important;
         }}
         
+        /* Minimal tabs - thin and clean */
         .stTabs [data-baseweb="tab-list"] {{
-            background: rgba(31, 41, 55, 0.4);
-            border-radius: 12px;
-            padding: 0.3rem;
+            background: transparent;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 0;
+            gap: 0;
         }}
         
         .stTabs [data-baseweb="tab"] {{
             color: {accent};
-            border-radius: 8px;
+            border-radius: 0;
             padding: 0.6rem 1.2rem;
             font-weight: 500;
+            font-size: 0.85rem;
+            border-bottom: 2px solid transparent;
+            background: transparent;
+        }}
+        
+        .stTabs [data-baseweb="tab"]:hover {{
+            background: rgba(255, 255, 255, 0.02);
+            color: {text};
         }}
         
         .stTabs [aria-selected="true"] {{
-            background: {primary} !important;
-            color: white !important;
-            box-shadow: 0 4px 12px rgba(30, 58, 138, 0.3);
+            background: transparent !important;
+            color: {text} !important;
+            border-bottom: 2px solid {primary} !important;
+            box-shadow: none;
         }}
         
+        /* Clean metrics */
         [data-testid="stMetricValue"] {{
             color: {text} !important;
-            font-size: 2rem !important;
-            font-weight: 700 !important;
+            font-size: 1.5rem !important;
+            font-weight: 600 !important;
         }}
         
+        [data-testid="stMetricLabel"] {{
+            font-size: 0.75rem !important;
+            font-weight: 500 !important;
+            color: {accent} !important;
+        }}
+        
+        /* Minimal checkboxes */
+        .stCheckbox {{
+            color: {text};
+            font-size: 0.85rem;
+        }}
+        
+        .stCheckbox > label {{ font-weight: 400; }}
+        
+        /* Thin progress bar */
         .stProgress > div > div > div {{
             background: {primary};
+            height: 4px;
         }}
         
-        .stSuccess {{ background: rgba(16, 185, 129, 0.1); border-left: 4px solid #10b981; border-radius: 8px; padding: 1rem; }}
-        .stError {{ background: rgba(239, 68, 68, 0.1); border-left: 4px solid #ef4444; border-radius: 8px; padding: 1rem; }}
-        .stWarning {{ background: rgba(251, 191, 36, 0.1); border-left: 4px solid #fbbf24; border-radius: 8px; padding: 1rem; }}
+        /* Clean alerts - minimal */
+        .stSuccess, .stError, .stWarning, .stInfo {{
+            border-radius: 6px;
+            padding: 0.6rem 0.8rem;
+            font-size: 0.85rem;
+            border-left-width: 3px;
+        }}
         
-        p {{ margin-bottom: 0.3rem !important; line-height: 1.5 !important; }}
-        .stCheckbox {{ margin-bottom: 0 !important; padding: 0.2rem 0 !important; }}
-        .stButton > button {{ font-size: 0.9rem !important; min-height: 36px !important; }}
-        [data-testid="column"] {{ padding: 0.4rem 0.6rem !important; }}
+        /* Minimal text */
+        p {{
+            margin-bottom: 0.2rem !important;
+            line-height: 1.4 !important;
+            font-size: 0.85rem;
+            font-weight: 400;
+        }}
         
-        ::-webkit-scrollbar {{ width: 10px; }}
-        ::-webkit-scrollbar-track {{ background: rgba(0, 0, 0, 0.5); }}
-        ::-webkit-scrollbar-thumb {{ background: rgba(30, 58, 138, 0.5); border-radius: 5px; }}
-        ::-webkit-scrollbar-thumb:hover {{ background: {primary}; }}
+        /* Ultra-compact spacing */
+        .stCheckbox {{ margin: 0 !important; padding: 0 !important; }}
+        .stTextInput {{ margin: 0 !important; }}
+        [data-testid="column"] {{ padding: 0.2rem 0.4rem !important; }}
+        
+        /* Thin clean scrollbar */
+        ::-webkit-scrollbar {{ width: 6px; height: 6px; }}
+        ::-webkit-scrollbar-track {{ background: transparent; }}
+        ::-webkit-scrollbar-thumb {{ 
+            background: rgba(255, 255, 255, 0.1); 
+            border-radius: 3px; 
+        }}
+        ::-webkit-scrollbar-thumb:hover {{ background: rgba(255, 255, 255, 0.2); }}
+        
+        /* Clean selection */
+        ::selection {{
+            background: rgba(30, 58, 138, 0.3);
+            color: {text};
+        }}
+        
+        /* Remove all shadows and heavy effects */
+        * {{ box-shadow: none !important; }}
+        
+        /* Thin borders everywhere */
+        hr {{ border-top: 1px solid rgba(255, 255, 255, 0.05); }}
     </style>
     """, unsafe_allow_html=True)
 
