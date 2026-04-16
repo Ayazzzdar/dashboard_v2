@@ -31,153 +31,298 @@ st.set_page_config(
 # ============================================================================
 
 def apply_custom_theme(settings):
-    """Apply custom color theme to dashboard"""
+    """Apply modern sleek design using The Day Archive brand colors"""
+    
+    # Extract user's brand colors
+    primary = settings.get('primary_color', '#1E3A8A')
+    accent = settings.get('accent_color', '#D1D5DB')
+    bg = settings.get('background_color', '#000000')
+    text = settings.get('text_color', '#FFFFFF')
+    sidebar = settings.get('sidebar_color', '#1F2937')
+    
     st.markdown(f"""
     <style>
-        /* Main app background */
+        /* Import Google Fonts */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        
+        /* Main app background - Your brand color */
         .stApp {{
-            background-color: {settings['background_color']};
-            color: {settings['text_color']};
+            background-color: {bg};
+            color: {text};
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
         }}
         
-        /* Sidebar styling */
+        /* Sidebar - Your brand color */
         [data-testid="stSidebar"] {{
-            background-color: {settings['sidebar_color']};
+            background-color: {sidebar};
+            border-right: 1px solid rgba(209, 213, 219, 0.1);
         }}
         
         [data-testid="stSidebar"] * {{
-            color: {settings['text_color']} !important;
+            color: {text} !important;
         }}
         
-        /* Button styling */
-        .stButton>button {{
-            background-color: {settings['primary_color']};
-            color: white;
-            border: none;
-            border-radius: 8px;
-            padding: 0.5rem 1.5rem;
-            font-weight: 600;
+        /* Card-style containers */
+        .element-container {{
+            background: rgba(31, 41, 55, 0.5);
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 0.8rem;
+            border: 1px solid rgba(30, 58, 138, 0.2);
+            backdrop-filter: blur(10px);
             transition: all 0.3s ease;
         }}
         
-        .stButton>button:hover {{
-            opacity: 0.85;
+        .element-container:hover {{
+            border-color: rgba(30, 58, 138, 0.4);
+            box-shadow: 0 8px 16px rgba(30, 58, 138, 0.15);
             transform: translateY(-2px);
-            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
         }}
         
-        /* Progress bar */
-        .stProgress > div > div > div {{
-            background-color: {settings['primary_color']};
+        /* Headers - Modern typography */
+        h1 {{
+            color: {text} !important;
+            font-weight: 700 !important;
+            font-size: 2rem !important;
+            letter-spacing: -0.02em !important;
+            margin-bottom: 0.5rem !important;
         }}
         
-        /* Headers */
-        h1, h2, h3, h4, h5, h6 {{
-            color: {settings['text_color']} !important;
+        h2 {{
+            color: {text} !important;
+            font-weight: 600 !important;
+            font-size: 1.5rem !important;
+            letter-spacing: -0.01em !important;
         }}
         
-        /* Input fields */
+        h3 {{
+            color: {accent} !important;
+            font-weight: 600 !important;
+            font-size: 1.1rem !important;
+        }}
+        
+        /* Modern buttons - Your navy blue brand color */
+        .stButton>button {{
+            background: {primary};
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 0.6rem 1.5rem;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 14px rgba(30, 58, 138, 0.3);
+        }}
+        
+        .stButton>button:hover {{
+            background: #1e40af;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(30, 58, 138, 0.4);
+        }}
+        
+        .stButton>button:active {{
+            transform: translateY(0);
+        }}
+        
+        /* Compact buttons for edit/save */
+        .stButton>button[kind="secondary"] {{
+            background: rgba(30, 58, 138, 0.1);
+            border: 1px solid rgba(30, 58, 138, 0.3);
+            box-shadow: none;
+            padding: 0.4rem 1rem;
+        }}
+        
+        .stButton>button[kind="secondary"]:hover {{
+            background: rgba(30, 58, 138, 0.2);
+            border-color: rgba(30, 58, 138, 0.5);
+        }}
+        
+        /* Input fields - Glass morphism with your colors */
         .stTextInput>div>div>input,
         .stSelectbox>div>div>select,
         .stNumberInput>div>div>input {{
-            background-color: {settings['sidebar_color']};
-            color: {settings['text_color']};
-            border: 1px solid {settings['accent_color']};
+            background: rgba(31, 41, 55, 0.6) !important;
+            color: {text} !important;
+            border: 1px solid rgba(30, 58, 138, 0.3) !important;
+            border-radius: 8px !important;
+            padding: 0.6rem 0.8rem !important;
+            transition: all 0.3s ease !important;
         }}
         
-        /* Tabs */
+        .stTextInput>div>div>input:focus,
+        .stSelectbox>div>div>select:focus {{
+            border-color: {primary} !important;
+            box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.2) !important;
+        }}
+        
+        /* Tabs - Modern style with your brand color */
         .stTabs [data-baseweb="tab-list"] {{
-            background-color: {settings['sidebar_color']};
+            background: rgba(31, 41, 55, 0.4);
+            border-radius: 12px;
+            padding: 0.3rem;
+            gap: 0.3rem;
         }}
         
         .stTabs [data-baseweb="tab"] {{
-            color: {settings['text_color']};
+            color: {accent};
+            border-radius: 8px;
+            padding: 0.6rem 1.2rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }}
+        
+        .stTabs [data-baseweb="tab"]:hover {{
+            background: rgba(30, 58, 138, 0.1);
+            color: {text};
         }}
         
         .stTabs [aria-selected="true"] {{
-            background-color: {settings['primary_color']};
-            color: white;
+            background: {primary} !important;
+            color: white !important;
+            box-shadow: 0 4px 12px rgba(30, 58, 138, 0.3);
+        }}
+        
+        /* Metrics - Card style */
+        [data-testid="stMetricValue"] {{
+            color: {text} !important;
+            font-size: 2rem !important;
+            font-weight: 700 !important;
+        }}
+        
+        [data-testid="stMetricDelta"] {{
+            color: #10b981 !important;
+        }}
+        
+        /* Metric containers */
+        [data-testid="metric-container"] {{
+            background: rgba(31, 41, 55, 0.5);
+            padding: 1.5rem;
+            border-radius: 12px;
+            border: 1px solid rgba(30, 58, 138, 0.2);
         }}
         
         /* Checkboxes */
         .stCheckbox {{
-            color: {settings['text_color']};
+            color: {text};
         }}
         
-        /* Metrics */
-        [data-testid="stMetricValue"] {{
-            color: {settings['primary_color']};
+        .stCheckbox > label {{
+            font-weight: 500;
         }}
         
-        /* Expander */
-        .streamlit-expanderHeader {{
-            background-color: {settings['sidebar_color']};
-            color: {settings['text_color']};
+        /* Progress bars - Your navy blue */
+        .stProgress > div > div > div {{
+            background: {primary};
         }}
         
-        /* Success/Error/Warning messages */
+        /* Success/Error/Warning - Modern cards */
         .stSuccess {{
-            background-color: rgba(34, 197, 94, 0.1);
-            border-left: 4px solid #22C55E;
+            background: rgba(16, 185, 129, 0.1);
+            border-left: 4px solid #10b981;
+            border-radius: 8px;
+            padding: 1rem;
         }}
         
         .stError {{
-            background-color: rgba(239, 68, 68, 0.1);
-            border-left: 4px solid #EF4444;
+            background: rgba(239, 68, 68, 0.1);
+            border-left: 4px solid #ef4444;
+            border-radius: 8px;
+            padding: 1rem;
         }}
         
         .stWarning {{
-            background-color: rgba(251, 191, 36, 0.1);
-            border-left: 4px solid #FBBF24;
+            background: rgba(251, 191, 36, 0.1);
+            border-left: 4px solid #fbbf24;
+            border-radius: 8px;
+            padding: 1rem;
         }}
         
-        /* Font size adjustments */
-        {"" if settings.get('font_size') == 'Medium' else 
-         "body { font-size: 14px; }" if settings.get('font_size') == 'Small' else
-         "body { font-size: 18px; }" if settings.get('font_size') == 'Large' else ""}
-        
-        /* Compact mode */
-        {".stBlock { padding: 0.5rem 0; }" if settings.get('compact_mode') else ""}
-        
-        /* Compact order rows - reduce vertical spacing */
-        .element-container {{
-            margin-bottom: 0.3rem !important;
+        .stInfo {{
+            background: rgba(30, 58, 138, 0.1);
+            border-left: 4px solid {primary};
+            border-radius: 8px;
+            padding: 1rem;
         }}
         
-        /* Make text elements more compact */
+        /* Expanders - Accordion style */
+        .streamlit-expanderHeader {{
+            background: rgba(31, 41, 55, 0.4);
+            color: {text};
+            border-radius: 8px;
+            font-weight: 500;
+        }}
+        
+        .streamlit-expanderHeader:hover {{
+            background: rgba(30, 58, 138, 0.1);
+        }}
+        
+        /* Compact order rows */
         p {{
             margin-bottom: 0.3rem !important;
-            line-height: 1.4 !important;
+            line-height: 1.5 !important;
         }}
         
-        /* Reduce checkbox padding */
+        /* Reduce spacing */
         .stCheckbox {{
             margin-bottom: 0 !important;
             padding: 0.2rem 0 !important;
         }}
         
-        /* Compact text input fields */
         .stTextInput {{
             margin-bottom: 0 !important;
         }}
         
         .stTextInput > div > div > input {{
-            padding: 0.4rem 0.6rem !important;
             font-size: 0.9rem !important;
         }}
         
-        /* Compact buttons */
         .stButton > button {{
-            padding: 0.3rem 0.8rem !important;
             font-size: 0.9rem !important;
-            min-height: 32px !important;
+            min-height: 36px !important;
         }}
         
-        /* Reduce column spacing */
         [data-testid="column"] {{
-            padding: 0.3rem 0.5rem !important;
+            padding: 0.4rem 0.6rem !important;
+        }}
+        
+        /* Scrollbar - Custom with your navy blue */
+        ::-webkit-scrollbar {{
+            width: 10px;
+            height: 10px;
+        }}
+        
+        ::-webkit-scrollbar-track {{
+            background: rgba(0, 0, 0, 0.5);
+        }}
+        
+        ::-webkit-scrollbar-thumb {{
+            background: rgba(30, 58, 138, 0.5);
+            border-radius: 5px;
+        }}
+        
+        ::-webkit-scrollbar-thumb:hover {{
+            background: {primary};
+        }}
+        
+        /* Selection color - Your navy blue */
+        ::selection {{
+            background: rgba(30, 58, 138, 0.4);
+            color: {text};
+        }}
+        
+        /* Data tables */
+        .stDataFrame {{
+            background: rgba(31, 41, 55, 0.5);
+            border-radius: 12px;
+            border: 1px solid rgba(30, 58, 138, 0.2);
+        }}
+        
+        /* Tooltips */
+        .stTooltipIcon {{
+            color: {primary};
         }}
     </style>
+    """, unsafe_allow_html=True)
     """, unsafe_allow_html=True)
 
 # ============================================================================
