@@ -951,7 +951,7 @@ def research_with_claude(month_name: str, day: int, year: int, api_key: str, pro
     
     prompt = f"""You are a historical research expert. Research accurate historical data for {month_name} {day}, {year} in Australia.
 
-🎯 MISSION: Provide 100% ACCURATE, VERIFIABLE data. Accuracy is MORE important than speed.
+MISSION: Provide 100% ACCURATE, VERIFIABLE data. Accuracy is MORE important than speed.
 
 CRITICAL RULES:
 1. CELEBRITIES: ONLY people ACTUALLY born on {month_name} {day} (verify the date in your knowledge)
