@@ -1500,8 +1500,8 @@ def main():
                                 if order['name'] in st.session_state.selected_orders:
                                     st.session_state.selected_orders.remove(order['name'])
                         else:
-                            # For subsequent items, just show the label with compact styling
-                            st.markdown(f"<p style='margin: 0; padding: 0.2rem 0; font-size: 0.9rem;'>{display_name}</p>", unsafe_allow_html=True)
+                            # For subsequent items, just show the label
+                            st.write(display_name)
                     
                     with col2:
                         if is_editing:
@@ -1514,11 +1514,11 @@ def main():
                                 label_visibility="collapsed"
                             )
                         else:
-                            # Display mode - show value or "No data" with compact styling
+                            # Display mode - show value or "No data"
                             if full_name:
-                                st.markdown(f"<p style='margin: 0; padding: 0.2rem 0; font-weight: 600;'>{full_name}</p>", unsafe_allow_html=True)
+                                st.write(f"**{full_name}**")
                             else:
-                                st.markdown("<p style='margin: 0; padding: 0.2rem 0; font-style: italic; opacity: 0.6;'>No data</p>", unsafe_allow_html=True)
+                                st.write("_No data_")
                     
                     with col3:
                         if is_editing:
@@ -1531,17 +1531,17 @@ def main():
                                 label_visibility="collapsed"
                             )
                         else:
-                            # Display mode - show value or dash with compact styling
+                            # Display mode - show value or dash
                             if birthday:
-                                st.markdown(f"<p style='margin: 0; padding: 0.2rem 0;'>🎂 {birthday}</p>", unsafe_allow_html=True)
+                                st.write(f"🎂 {birthday}")
                             else:
-                                st.markdown("<p style='margin: 0; padding: 0.2rem 0;'>—</p>", unsafe_allow_html=True)
+                                st.write("—")
                     
                     with col4:
-                        # Only show date for first item of each order with compact styling
+                        # Only show date for first item of each order
                         if item_idx == 0:
                             order_date = datetime.fromisoformat(order['created_at'].replace('Z', '+00:00'))
-                            st.markdown(f"<p style='margin: 0; padding: 0.2rem 0;'>📅 {order_date.strftime('%b %d, %Y')}</p>", unsafe_allow_html=True)
+                            st.write(f"📅 {order_date.strftime('%b %d, %Y')}")
                         else:
                             st.write("")  # Empty for subsequent items
                     
