@@ -31,114 +31,290 @@ st.set_page_config(
 # ============================================================================
 
 def apply_custom_theme(settings):
-    """Apply custom color theme to dashboard"""
+    """Apply modern sleek dark theme inspired by premium dashboards"""
     st.markdown(f"""
     <style>
-        /* Main app background */
+        /* Import Google Fonts */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        
+        /* Main app background - Dark with subtle gradient */
         .stApp {{
-            background-color: {settings['background_color']};
-            color: {settings['text_color']};
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: #e2e8f0;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
         }}
         
-        /* Sidebar styling */
+        /* Sidebar - Darker with blue accent */
         [data-testid="stSidebar"] {{
-            background-color: {settings['sidebar_color']};
+            background: linear-gradient(180deg, #0f172a 0%, #1e1b4b 100%);
+            border-right: 1px solid rgba(99, 102, 241, 0.1);
         }}
         
         [data-testid="stSidebar"] * {{
-            color: {settings['text_color']} !important;
+            color: #cbd5e1 !important;
         }}
         
-        /* Button styling */
-        .stButton>button {{
-            background-color: {settings['primary_color']};
-            color: white;
-            border: none;
-            border-radius: 8px;
-            padding: 0.5rem 1.5rem;
-            font-weight: 600;
+        /* Card-style containers */
+        .element-container {{
+            background: rgba(30, 41, 59, 0.5);
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 0.8rem;
+            border: 1px solid rgba(99, 102, 241, 0.1);
+            backdrop-filter: blur(10px);
             transition: all 0.3s ease;
         }}
         
-        .stButton>button:hover {{
-            opacity: 0.85;
+        .element-container:hover {{
+            border-color: rgba(99, 102, 241, 0.3);
+            box-shadow: 0 8px 16px rgba(99, 102, 241, 0.1);
             transform: translateY(-2px);
-            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
         }}
         
-        /* Progress bar */
-        .stProgress > div > div > div {{
-            background-color: {settings['primary_color']};
+        /* Headers - Modern typography */
+        h1 {{
+            color: #f1f5f9 !important;
+            font-weight: 700 !important;
+            font-size: 2rem !important;
+            letter-spacing: -0.02em !important;
+            margin-bottom: 0.5rem !important;
         }}
         
-        /* Headers */
-        h1, h2, h3, h4, h5, h6 {{
-            color: {settings['text_color']} !important;
+        h2 {{
+            color: #e2e8f0 !important;
+            font-weight: 600 !important;
+            font-size: 1.5rem !important;
+            letter-spacing: -0.01em !important;
         }}
         
-        /* Input fields */
+        h3 {{
+            color: #cbd5e1 !important;
+            font-weight: 600 !important;
+            font-size: 1.1rem !important;
+        }}
+        
+        /* Modern buttons with gradient */
+        .stButton>button {{
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 0.6rem 1.5rem;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 14px rgba(99, 102, 241, 0.3);
+        }}
+        
+        .stButton>button:hover {{
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+        }}
+        
+        .stButton>button:active {{
+            transform: translateY(0);
+        }}
+        
+        /* Compact buttons for edit/save */
+        .stButton>button[kind="secondary"] {{
+            background: rgba(99, 102, 241, 0.1);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            box-shadow: none;
+            padding: 0.4rem 1rem;
+        }}
+        
+        .stButton>button[kind="secondary"]:hover {{
+            background: rgba(99, 102, 241, 0.2);
+            border-color: rgba(99, 102, 241, 0.5);
+        }}
+        
+        /* Input fields - Glass morphism style */
         .stTextInput>div>div>input,
         .stSelectbox>div>div>select,
         .stNumberInput>div>div>input {{
-            background-color: {settings['sidebar_color']};
-            color: {settings['text_color']};
-            border: 1px solid {settings['accent_color']};
+            background: rgba(30, 41, 59, 0.6) !important;
+            color: #e2e8f0 !important;
+            border: 1px solid rgba(99, 102, 241, 0.2) !important;
+            border-radius: 8px !important;
+            padding: 0.6rem 0.8rem !important;
+            transition: all 0.3s ease !important;
         }}
         
-        /* Tabs */
+        .stTextInput>div>div>input:focus,
+        .stSelectbox>div>div>select:focus {{
+            border-color: rgba(99, 102, 241, 0.5) !important;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1) !important;
+        }}
+        
+        /* Tabs - Modern style */
         .stTabs [data-baseweb="tab-list"] {{
-            background-color: {settings['sidebar_color']};
+            background: rgba(30, 41, 59, 0.4);
+            border-radius: 12px;
+            padding: 0.3rem;
+            gap: 0.3rem;
         }}
         
         .stTabs [data-baseweb="tab"] {{
-            color: {settings['text_color']};
+            color: #94a3b8;
+            border-radius: 8px;
+            padding: 0.6rem 1.2rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }}
+        
+        .stTabs [data-baseweb="tab"]:hover {{
+            background: rgba(99, 102, 241, 0.1);
+            color: #c7d2fe;
         }}
         
         .stTabs [aria-selected="true"] {{
-            background-color: {settings['primary_color']};
-            color: white;
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%) !important;
+            color: white !important;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
         }}
         
-        /* Checkboxes */
-        .stCheckbox {{
-            color: {settings['text_color']};
-        }}
-        
-        /* Metrics */
+        /* Metrics - Card style with icons */
         [data-testid="stMetricValue"] {{
-            color: {settings['primary_color']};
+            color: #f1f5f9 !important;
+            font-size: 2rem !important;
+            font-weight: 700 !important;
         }}
         
-        /* Expander */
-        .streamlit-expanderHeader {{
-            background-color: {settings['sidebar_color']};
-            color: {settings['text_color']};
+        [data-testid="stMetricDelta"] {{
+            color: #10b981 !important;
         }}
         
-        /* Success/Error/Warning messages */
+        /* Metric containers */
+        [data-testid="metric-container"] {{
+            background: rgba(30, 41, 59, 0.5);
+            padding: 1.5rem;
+            border-radius: 12px;
+            border: 1px solid rgba(99, 102, 241, 0.1);
+        }}
+        
+        /* Checkboxes - Modern toggle style */
+        .stCheckbox {{
+            color: #cbd5e1;
+        }}
+        
+        .stCheckbox > label {{
+            font-weight: 500;
+        }}
+        
+        /* Progress bars - Gradient */
+        .stProgress > div > div > div {{
+            background: linear-gradient(90deg, #6366f1 0%, #8b5cf6 100%);
+        }}
+        
+        /* Success/Error/Warning - Modern cards */
         .stSuccess {{
-            background-color: rgba(34, 197, 94, 0.1);
-            border-left: 4px solid #22C55E;
+            background: rgba(16, 185, 129, 0.1);
+            border-left: 4px solid #10b981;
+            border-radius: 8px;
+            padding: 1rem;
         }}
         
         .stError {{
-            background-color: rgba(239, 68, 68, 0.1);
-            border-left: 4px solid #EF4444;
+            background: rgba(239, 68, 68, 0.1);
+            border-left: 4px solid #ef4444;
+            border-radius: 8px;
+            padding: 1rem;
         }}
         
         .stWarning {{
-            background-color: rgba(251, 191, 36, 0.1);
-            border-left: 4px solid #FBBF24;
+            background: rgba(251, 191, 36, 0.1);
+            border-left: 4px solid #fbbf24;
+            border-radius: 8px;
+            padding: 1rem;
         }}
         
-        /* Font size adjustments */
-        {"" if settings.get('font_size') == 'Medium' else 
-         "body { font-size: 14px; }" if settings.get('font_size') == 'Small' else
-         "body { font-size: 18px; }" if settings.get('font_size') == 'Large' else ""}
+        .stInfo {{
+            background: rgba(99, 102, 241, 0.1);
+            border-left: 4px solid #6366f1;
+            border-radius: 8px;
+            padding: 1rem;
+        }}
         
-        /* Compact mode */
-        {".stBlock { padding: 0.5rem 0; }" if settings.get('compact_mode') else ""}
+        /* Expanders - Accordion style */
+        .streamlit-expanderHeader {{
+            background: rgba(30, 41, 59, 0.4);
+            color: #e2e8f0;
+            border-radius: 8px;
+            font-weight: 500;
+        }}
+        
+        .streamlit-expanderHeader:hover {{
+            background: rgba(99, 102, 241, 0.1);
+        }}
+        
+        /* Compact order rows */
+        p {{
+            margin-bottom: 0.3rem !important;
+            line-height: 1.5 !important;
+        }}
+        
+        /* Reduce spacing */
+        .stCheckbox {{
+            margin-bottom: 0 !important;
+            padding: 0.2rem 0 !important;
+        }}
+        
+        .stTextInput {{
+            margin-bottom: 0 !important;
+        }}
+        
+        .stTextInput > div > div > input {{
+            font-size: 0.9rem !important;
+        }}
+        
+        .stButton > button {{
+            font-size: 0.9rem !important;
+            min-height: 36px !important;
+        }}
+        
+        [data-testid="column"] {{
+            padding: 0.4rem 0.6rem !important;
+        }}
+        
+        /* Scrollbar - Custom dark theme */
+        ::-webkit-scrollbar {{
+            width: 10px;
+            height: 10px;
+        }}
+        
+        ::-webkit-scrollbar-track {{
+            background: rgba(15, 23, 42, 0.5);
+        }}
+        
+        ::-webkit-scrollbar-thumb {{
+            background: rgba(99, 102, 241, 0.3);
+            border-radius: 5px;
+        }}
+        
+        ::-webkit-scrollbar-thumb:hover {{
+            background: rgba(99, 102, 241, 0.5);
+        }}
+        
+        /* Selection color */
+        ::selection {{
+            background: rgba(99, 102, 241, 0.3);
+            color: #f1f5f9;
+        }}
+        
+        /* Data tables */
+        .stDataFrame {{
+            background: rgba(30, 41, 59, 0.5);
+            border-radius: 12px;
+            border: 1px solid rgba(99, 102, 241, 0.1);
+        }}
+        
+        /* Tooltips */
+        .stTooltipIcon {{
+            color: #6366f1;
+        }}
     </style>
+    """, unsafe_allow_html=True)
     """, unsafe_allow_html=True)
 
 # ============================================================================
@@ -708,25 +884,40 @@ def fetch_shopify_orders(api_token: str, store_url: str) -> List[Dict]:
         st.error(f"Error fetching orders: {e}")
         return []
 
-def extract_personalization_data(order: Dict) -> Optional[tuple]:
-    """Extract Full Name and Birthday from order"""
+def extract_personalization_data(order: Dict, item_index: int = 0) -> Optional[tuple]:
+    """Extract Full Name and Birthday from a specific line item in an order
     
-    # First get original data from order
-    full_name = None
-    birthday = None
+    Args:
+        order: The Shopify order dict
+        item_index: Which line item to extract from (0 for first, 1 for second, etc.)
     
-    for item in order.get("line_items", []):
-        properties = item.get("properties", [])
-        
-        for prop in properties:
-            if prop.get("name") == "Full Name":
-                full_name = prop.get("value") or ""
-            elif prop.get("name") == "Birthday":
-                birthday = prop.get("value") or ""
+    Returns:
+        Tuple of (full_name, birthday) for that specific line item
+    """
     
-    # Check if this order has been edited in session - override with edits
-    if 'order_edits' in st.session_state and order['name'] in st.session_state.order_edits:
-        edits = st.session_state.order_edits[order['name']]
+    # Get the specific line item
+    line_items = order.get("line_items", [])
+    
+    if item_index >= len(line_items):
+        return ("", "")
+    
+    item = line_items[item_index]
+    
+    # Extract personalization from this specific item
+    full_name = ""
+    birthday = ""
+    
+    properties = item.get("properties", [])
+    for prop in properties:
+        if prop.get("name") == "Full Name":
+            full_name = prop.get("value") or ""
+        elif prop.get("name") == "Birthday":
+            birthday = prop.get("value") or ""
+    
+    # Check if this order+item has been edited in session - override with edits
+    edit_key = f"{order['name']}_item{item_index}"
+    if 'order_edits' in st.session_state and edit_key in st.session_state.order_edits:
+        edits = st.session_state.order_edits[edit_key]
         # Only override if edit value is not empty
         if edits.get('full_name'):
             full_name = edits['full_name']
@@ -735,6 +926,10 @@ def extract_personalization_data(order: Dict) -> Optional[tuple]:
     
     # Return tuple even if values are empty strings (so we can edit them)
     return (full_name or "", birthday or "")
+
+def get_line_item_count(order: Dict) -> int:
+    """Get the number of line items in an order"""
+    return len(order.get("line_items", []))
 
 # ============================================================================
 # CLAUDE API FUNCTION
@@ -1053,15 +1248,32 @@ Return ONLY the JSON object. Start with {{ and end with }}."""
 # ORDER PROCESSING
 # ============================================================================
 
-def process_order(order: Dict, claude_api_key: str, progress_callback=None) -> Optional[Dict]:
-    """Process a single order and return complete data"""
+def process_order(order: Dict, claude_api_key: str, item_index: int = 0, progress_callback=None) -> Optional[Dict]:
+    """Process a single order line item and return complete data
+    
+    Args:
+        order: The Shopify order dict
+        claude_api_key: API key for Claude
+        item_index: Which line item to process (0 for first, 1 for second, etc.)
+        progress_callback: Optional callback function for progress updates
+    
+    Returns:
+        Dictionary with complete processed data for this line item
+    """
     order_number = order["name"]
     
-    if progress_callback:
-        progress_callback(f"📋 Processing {order_number}...")
+    # Add item suffix if multiple items
+    line_item_count = get_line_item_count(order)
+    if line_item_count > 1:
+        display_order = f"{order_number} (Item {item_index + 1}/{line_item_count})"
+    else:
+        display_order = order_number
     
-    # Extract personalization
-    personalization = extract_personalization_data(order)
+    if progress_callback:
+        progress_callback(f"📋 Processing {display_order}...")
+    
+    # Extract personalization for this specific item
+    personalization = extract_personalization_data(order, item_index)
     if not personalization:
         if progress_callback:
             progress_callback(f"⚠️ No personalization data found")
@@ -1107,7 +1319,7 @@ def process_order(order: Dict, claude_api_key: str, progress_callback=None) -> O
     
     # Combine data
     complete_data = {
-        "OrderID": order_number,
+        "OrderID": display_order,  # Include item suffix if multiple items
         "Name": full_name.upper(),
         "DayOfWeek": day_of_week,
         "MonthName": month_name,
@@ -1120,7 +1332,7 @@ def process_order(order: Dict, claude_api_key: str, progress_callback=None) -> O
     complete_data.update(research_data)
     
     if progress_callback:
-        progress_callback(f"✅ {order_number} processed successfully")
+        progress_callback(f"✅ {display_order} processed successfully")
     
     return complete_data
 
@@ -1384,102 +1596,126 @@ def main():
             st.markdown(f"**Selected: {len(st.session_state.selected_orders)} orders**")
             st.markdown("---")
             
-            # Order list
+            # Order list - show each line item as a separate row
             for idx, order in enumerate(filtered[:st.session_state.settings.get('items_per_page', 20)]):
-                personalization = extract_personalization_data(order)
+                # Get number of line items in this order
+                line_item_count = get_line_item_count(order)
                 
-                # Extract values (now always returns a tuple, even if empty)
-                full_name = personalization[0] if personalization else ""
-                birthday = personalization[1] if personalization else ""
-                
-                # Check if we're editing this order
-                edit_key = f"edit_{order['name']}"
-                is_editing = st.session_state.get(edit_key, False)
-                
-                col1, col2, col3, col4, col5 = st.columns([1, 2, 2, 2, 1])
-                
-                with col1:
-                    # Checkbox
-                    is_checked = order['name'] in st.session_state.selected_orders
+                # Display each line item separately
+                for item_idx in range(line_item_count):
+                    personalization = extract_personalization_data(order, item_idx)
                     
-                    if st.checkbox(
-                        order['name'],
-                        value=is_checked,
-                        key=f"cb_{order['name']}_{is_checked}"
-                    ):
-                        if order['name'] not in st.session_state.selected_orders:
-                            st.session_state.selected_orders.append(order['name'])
-                    else:
-                        if order['name'] in st.session_state.selected_orders:
-                            st.session_state.selected_orders.remove(order['name'])
-                
-                with col2:
-                    if is_editing:
-                        # Edit mode - show input field with current value
-                        new_name = st.text_input(
-                            "Full Name",
-                            value=full_name,
-                            key=f"edit_name_{order['name']}",
-                            placeholder="Enter full name",
-                            label_visibility="collapsed"
-                        )
-                    else:
-                        # Display mode - show value or "No data"
-                        if full_name:
-                            st.write(f"**{full_name}**")
+                    # Extract values
+                    full_name = personalization[0] if personalization else ""
+                    birthday = personalization[1] if personalization else ""
+                    
+                    # Create unique keys for this order+item combination
+                    item_key = f"{order['name']}_item{item_idx}"
+                    edit_key = f"edit_{item_key}"
+                    is_editing = st.session_state.get(edit_key, False)
+                    
+                    col1, col2, col3, col4, col5 = st.columns([1, 2, 2, 2, 1])
+                    
+                    with col1:
+                        # Show order number (add suffix if multiple items)
+                        display_name = order['name']
+                        if line_item_count > 1:
+                            display_name = f"{order['name']} ({item_idx + 1}/{line_item_count})"
+                        
+                        # Checkbox - only the first item of each order can be selected
+                        if item_idx == 0:
+                            is_checked = order['name'] in st.session_state.selected_orders
+                            
+                            if st.checkbox(
+                                display_name,
+                                value=is_checked,
+                                key=f"cb_{item_key}_{is_checked}"
+                            ):
+                                if order['name'] not in st.session_state.selected_orders:
+                                    st.session_state.selected_orders.append(order['name'])
+                            else:
+                                if order['name'] in st.session_state.selected_orders:
+                                    st.session_state.selected_orders.remove(order['name'])
                         else:
-                            st.write("_No data_")
-                
-                with col3:
-                    if is_editing:
-                        # Edit mode - show input field with current value
-                        new_birthday = st.text_input(
-                            "Birthday",
-                            value=birthday,
-                            placeholder="DD/MM/YYYY",
-                            key=f"edit_birthday_{order['name']}",
-                            label_visibility="collapsed"
-                        )
-                    else:
-                        # Display mode - show value or dash
-                        if birthday:
-                            st.write(f"🎂 {birthday}")
+                            # For subsequent items, just show the label
+                            st.write(display_name)
+                    
+                    with col2:
+                        if is_editing:
+                            # Edit mode - show input field with current value
+                            new_name = st.text_input(
+                                "Full Name",
+                                value=full_name,
+                                key=f"edit_name_{item_key}",
+                                placeholder="Enter full name",
+                                label_visibility="collapsed"
+                            )
                         else:
-                            st.write("—")
+                            # Display mode - show value or "No data"
+                            if full_name:
+                                st.write(f"**{full_name}**")
+                            else:
+                                st.write("_No data_")
+                    
+                    with col3:
+                        if is_editing:
+                            # Edit mode - show input field with current value
+                            new_birthday = st.text_input(
+                                "Birthday",
+                                value=birthday,
+                                placeholder="DD/MM/YYYY",
+                                key=f"edit_birthday_{item_key}",
+                                label_visibility="collapsed"
+                            )
+                        else:
+                            # Display mode - show value or dash
+                            if birthday:
+                                st.write(f"🎂 {birthday}")
+                            else:
+                                st.write("—")
+                    
+                    with col4:
+                        # Only show date for first item of each order
+                        if item_idx == 0:
+                            order_date = datetime.fromisoformat(order['created_at'].replace('Z', '+00:00'))
+                            st.write(f"📅 {order_date.strftime('%b %d, %Y')}")
+                        else:
+                            st.write("")  # Empty for subsequent items
+                    
+                    with col5:
+                        # Show edit/save button for each line item
+                        if not is_editing:
+                            if st.button("✏️", key=f"btn_edit_{item_key}", use_container_width=True, help="Edit this item"):
+                                st.session_state[edit_key] = True
+                                st.rerun()
+                        else:
+                            # Show save/cancel buttons when editing
+                            if st.button("💾", key=f"btn_save_{item_key}", use_container_width=True, help="Save changes"):
+                                # Get the new values
+                                name_input_key = f"edit_name_{item_key}"
+                                birthday_input_key = f"edit_birthday_{item_key}"
+                                
+                                # Initialize order_edits if needed
+                                if 'order_edits' not in st.session_state:
+                                    st.session_state.order_edits = {}
+                                
+                                # Save the edits with item-specific key
+                                st.session_state.order_edits[item_key] = {
+                                    'full_name': st.session_state.get(name_input_key, ""),
+                                    'birthday': st.session_state.get(birthday_input_key, "")
+                                }
+                                
+                                # Exit edit mode
+                                st.session_state[edit_key] = False
+                                st.rerun()
+                    
+                    # Add a subtle separator between line items from the same order
+                    if item_idx < line_item_count - 1:
+                        st.markdown("<div style='border-bottom: 1px dashed #333; margin: 0.3rem 0;'></div>", unsafe_allow_html=True)
                 
-                with col4:
-                    order_date = datetime.fromisoformat(order['created_at'].replace('Z', '+00:00'))
-                    st.write(f"📅 {order_date.strftime('%b %d, %Y')}")
-                
-                with col5:
-                    # Show edit/save button for ALL orders
-                    if not is_editing:
-                        if st.button("✏️", key=f"btn_edit_{order['name']}", use_container_width=True, help="Edit order"):
-                            st.session_state[edit_key] = True
-                            st.rerun()
-                    else:
-                        # Show save/cancel buttons when editing
-                        if st.button("💾", key=f"btn_save_{order['name']}", use_container_width=True, help="Save changes"):
-                            # Get the new values
-                            name_key = f"edit_name_{order['name']}"
-                            birthday_key = f"edit_birthday_{order['name']}"
-                            
-                            new_name = st.session_state.get(name_key, "")
-                            new_birthday = st.session_state.get(birthday_key, "")
-                            
-                            # Store edits (even if empty, user might be clearing data)
-                            if 'order_edits' not in st.session_state:
-                                st.session_state.order_edits = {}
-                            
-                            st.session_state.order_edits[order['name']] = {
-                                'full_name': new_name,
-                                'birthday': new_birthday
-                            }
-                            
-                            st.session_state[edit_key] = False
-                            st.success(f"✓ Updated {order['name']}")
-                            time.sleep(0.3)
-                            st.rerun()
+                # Add a stronger separator between different orders
+                if idx < len(filtered[:st.session_state.settings.get('items_per_page', 20)]) - 1:
+                    st.markdown("<div style='border-bottom: 1px solid #555; margin: 0.8rem 0;'></div>", unsafe_allow_html=True)
         
         else:
             st.info("Click 'Refresh Orders' to load unfulfilled orders")
@@ -1514,43 +1750,57 @@ def main():
                         if o['name'] in st.session_state.selected_orders
                     ]
                     
-                    total = len(selected_objs)
+                    # Calculate total items to process (not just orders)
+                    total_items = sum(get_line_item_count(o) for o in selected_objs)
                     
-                    # Process each
-                    for idx, order in enumerate(selected_objs):
-                        progress = (idx + 1) / total
-                        progress_bar.progress(progress)
-                        status_text.markdown(f"**Processing {idx + 1} of {total}** ({order['name']})")
+                    # Process each order's line items
+                    processed_count = 0
+                    for order in selected_objs:
+                        line_item_count = get_line_item_count(order)
                         
-                        def log(msg):
-                            with log_container:
-                                st.write(msg)
-                            st.session_state.processing_log.append({
-                                "timestamp": datetime.now(),
-                                "order": order['name'],
-                                "message": msg
-                            })
-                        
-                        try:
-                            order_data = process_order(order, claude_api_key, log)
+                        # Process each line item separately
+                        for item_idx in range(line_item_count):
+                            processed_count += 1
+                            progress = processed_count / total_items
+                            progress_bar.progress(progress)
                             
-                            if order_data:
-                                st.session_state.processed_orders.append(order_data)
-                                st.session_state.total_processed_today += 1
+                            # Create display name
+                            if line_item_count > 1:
+                                display_name = f"{order['name']} (Item {item_idx + 1}/{line_item_count})"
                             else:
+                                display_name = order['name']
+                            
+                            status_text.markdown(f"**Processing {processed_count} of {total_items}** ({display_name})")
+                            
+                            def log(msg):
+                                with log_container:
+                                    st.write(msg)
+                                st.session_state.processing_log.append({
+                                    "timestamp": datetime.now(),
+                                    "order": display_name,
+                                    "message": msg
+                                })
+                            
+                            try:
+                                order_data = process_order(order, claude_api_key, item_idx, log)
+                                
+                                if order_data:
+                                    st.session_state.processed_orders.append(order_data)
+                                    st.session_state.total_processed_today += 1
+                                else:
+                                    st.session_state.error_log.append({
+                                        "timestamp": datetime.now(),
+                                        "order": display_name,
+                                        "error": "Processing failed"
+                                    })
+                            
+                            except Exception as e:
                                 st.session_state.error_log.append({
                                     "timestamp": datetime.now(),
-                                    "order": order['name'],
-                                    "error": "Processing failed"
+                                    "order": display_name,
+                                    "error": str(e)
                                 })
-                        
-                        except Exception as e:
-                            st.session_state.error_log.append({
-                                "timestamp": datetime.now(),
-                                "order": order['name'],
-                                "error": str(e)
-                            })
-                            log(f"❌ Error: {str(e)}")
+                                log(f"❌ Error: {str(e)}")
                     
                     # Complete
                     st.session_state.processing = False
