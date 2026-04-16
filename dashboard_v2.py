@@ -31,290 +31,127 @@ st.set_page_config(
 # ============================================================================
 
 def apply_custom_theme(settings):
-    """Apply modern sleek dark theme inspired by premium dashboards"""
+    """Apply modern sleek design using The Day Archive brand colors"""
+    
+    # Extract user's brand colors
+    primary = settings.get('primary_color', '#1E3A8A')
+    accent = settings.get('accent_color', '#D1D5DB')
+    bg = settings.get('background_color', '#000000')
+    text = settings.get('text_color', '#FFFFFF')
+    sidebar = settings.get('sidebar_color', '#1F2937')
+    
     st.markdown(f"""
     <style>
-        /* Import Google Fonts */
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
         
-        /* Main app background - Dark with subtle gradient */
         .stApp {{
-            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-            color: #e2e8f0;
+            background-color: {bg};
+            color: {text};
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
         }}
         
-        /* Sidebar - Darker with blue accent */
         [data-testid="stSidebar"] {{
-            background: linear-gradient(180deg, #0f172a 0%, #1e1b4b 100%);
-            border-right: 1px solid rgba(99, 102, 241, 0.1);
+            background-color: {sidebar};
+            border-right: 1px solid rgba(209, 213, 219, 0.1);
         }}
         
         [data-testid="stSidebar"] * {{
-            color: #cbd5e1 !important;
+            color: {text} !important;
         }}
         
-        /* Card-style containers */
         .element-container {{
-            background: rgba(30, 41, 59, 0.5);
+            background: rgba(31, 41, 55, 0.5);
             border-radius: 12px;
             padding: 1rem;
             margin-bottom: 0.8rem;
-            border: 1px solid rgba(99, 102, 241, 0.1);
+            border: 1px solid rgba(30, 58, 138, 0.2);
             backdrop-filter: blur(10px);
             transition: all 0.3s ease;
         }}
         
         .element-container:hover {{
-            border-color: rgba(99, 102, 241, 0.3);
-            box-shadow: 0 8px 16px rgba(99, 102, 241, 0.1);
+            border-color: rgba(30, 58, 138, 0.4);
+            box-shadow: 0 8px 16px rgba(30, 58, 138, 0.15);
             transform: translateY(-2px);
         }}
         
-        /* Headers - Modern typography */
-        h1 {{
-            color: #f1f5f9 !important;
-            font-weight: 700 !important;
-            font-size: 2rem !important;
-            letter-spacing: -0.02em !important;
-            margin-bottom: 0.5rem !important;
-        }}
+        h1 {{ color: {text} !important; font-weight: 700 !important; font-size: 2rem !important; letter-spacing: -0.02em !important; }}
+        h2 {{ color: {text} !important; font-weight: 600 !important; font-size: 1.5rem !important; }}
+        h3 {{ color: {accent} !important; font-weight: 600 !important; font-size: 1.1rem !important; }}
         
-        h2 {{
-            color: #e2e8f0 !important;
-            font-weight: 600 !important;
-            font-size: 1.5rem !important;
-            letter-spacing: -0.01em !important;
-        }}
-        
-        h3 {{
-            color: #cbd5e1 !important;
-            font-weight: 600 !important;
-            font-size: 1.1rem !important;
-        }}
-        
-        /* Modern buttons with gradient */
         .stButton>button {{
-            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            background: {primary};
             color: white;
             border: none;
             border-radius: 10px;
             padding: 0.6rem 1.5rem;
             font-weight: 600;
-            font-size: 0.95rem;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 4px 14px rgba(99, 102, 241, 0.3);
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 14px rgba(30, 58, 138, 0.3);
         }}
         
         .stButton>button:hover {{
-            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            background: #1e40af;
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+            box-shadow: 0 6px 20px rgba(30, 58, 138, 0.4);
         }}
         
-        .stButton>button:active {{
-            transform: translateY(0);
-        }}
-        
-        /* Compact buttons for edit/save */
-        .stButton>button[kind="secondary"] {{
-            background: rgba(99, 102, 241, 0.1);
-            border: 1px solid rgba(99, 102, 241, 0.3);
-            box-shadow: none;
-            padding: 0.4rem 1rem;
-        }}
-        
-        .stButton>button[kind="secondary"]:hover {{
-            background: rgba(99, 102, 241, 0.2);
-            border-color: rgba(99, 102, 241, 0.5);
-        }}
-        
-        /* Input fields - Glass morphism style */
-        .stTextInput>div>div>input,
-        .stSelectbox>div>div>select,
-        .stNumberInput>div>div>input {{
-            background: rgba(30, 41, 59, 0.6) !important;
-            color: #e2e8f0 !important;
-            border: 1px solid rgba(99, 102, 241, 0.2) !important;
+        .stTextInput>div>div>input, .stSelectbox>div>div>select {{
+            background: rgba(31, 41, 55, 0.6) !important;
+            color: {text} !important;
+            border: 1px solid rgba(30, 58, 138, 0.3) !important;
             border-radius: 8px !important;
             padding: 0.6rem 0.8rem !important;
-            transition: all 0.3s ease !important;
         }}
         
-        .stTextInput>div>div>input:focus,
-        .stSelectbox>div>div>select:focus {{
-            border-color: rgba(99, 102, 241, 0.5) !important;
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1) !important;
+        .stTextInput>div>div>input:focus {{
+            border-color: {primary} !important;
+            box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.2) !important;
         }}
         
-        /* Tabs - Modern style */
         .stTabs [data-baseweb="tab-list"] {{
-            background: rgba(30, 41, 59, 0.4);
+            background: rgba(31, 41, 55, 0.4);
             border-radius: 12px;
             padding: 0.3rem;
-            gap: 0.3rem;
         }}
         
         .stTabs [data-baseweb="tab"] {{
-            color: #94a3b8;
+            color: {accent};
             border-radius: 8px;
             padding: 0.6rem 1.2rem;
             font-weight: 500;
-            transition: all 0.3s ease;
-        }}
-        
-        .stTabs [data-baseweb="tab"]:hover {{
-            background: rgba(99, 102, 241, 0.1);
-            color: #c7d2fe;
         }}
         
         .stTabs [aria-selected="true"] {{
-            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%) !important;
+            background: {primary} !important;
             color: white !important;
-            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+            box-shadow: 0 4px 12px rgba(30, 58, 138, 0.3);
         }}
         
-        /* Metrics - Card style with icons */
         [data-testid="stMetricValue"] {{
-            color: #f1f5f9 !important;
+            color: {text} !important;
             font-size: 2rem !important;
             font-weight: 700 !important;
         }}
         
-        [data-testid="stMetricDelta"] {{
-            color: #10b981 !important;
-        }}
-        
-        /* Metric containers */
-        [data-testid="metric-container"] {{
-            background: rgba(30, 41, 59, 0.5);
-            padding: 1.5rem;
-            border-radius: 12px;
-            border: 1px solid rgba(99, 102, 241, 0.1);
-        }}
-        
-        /* Checkboxes - Modern toggle style */
-        .stCheckbox {{
-            color: #cbd5e1;
-        }}
-        
-        .stCheckbox > label {{
-            font-weight: 500;
-        }}
-        
-        /* Progress bars - Gradient */
         .stProgress > div > div > div {{
-            background: linear-gradient(90deg, #6366f1 0%, #8b5cf6 100%);
+            background: {primary};
         }}
         
-        /* Success/Error/Warning - Modern cards */
-        .stSuccess {{
-            background: rgba(16, 185, 129, 0.1);
-            border-left: 4px solid #10b981;
-            border-radius: 8px;
-            padding: 1rem;
-        }}
+        .stSuccess {{ background: rgba(16, 185, 129, 0.1); border-left: 4px solid #10b981; border-radius: 8px; padding: 1rem; }}
+        .stError {{ background: rgba(239, 68, 68, 0.1); border-left: 4px solid #ef4444; border-radius: 8px; padding: 1rem; }}
+        .stWarning {{ background: rgba(251, 191, 36, 0.1); border-left: 4px solid #fbbf24; border-radius: 8px; padding: 1rem; }}
         
-        .stError {{
-            background: rgba(239, 68, 68, 0.1);
-            border-left: 4px solid #ef4444;
-            border-radius: 8px;
-            padding: 1rem;
-        }}
+        p {{ margin-bottom: 0.3rem !important; line-height: 1.5 !important; }}
+        .stCheckbox {{ margin-bottom: 0 !important; padding: 0.2rem 0 !important; }}
+        .stButton > button {{ font-size: 0.9rem !important; min-height: 36px !important; }}
+        [data-testid="column"] {{ padding: 0.4rem 0.6rem !important; }}
         
-        .stWarning {{
-            background: rgba(251, 191, 36, 0.1);
-            border-left: 4px solid #fbbf24;
-            border-radius: 8px;
-            padding: 1rem;
-        }}
-        
-        .stInfo {{
-            background: rgba(99, 102, 241, 0.1);
-            border-left: 4px solid #6366f1;
-            border-radius: 8px;
-            padding: 1rem;
-        }}
-        
-        /* Expanders - Accordion style */
-        .streamlit-expanderHeader {{
-            background: rgba(30, 41, 59, 0.4);
-            color: #e2e8f0;
-            border-radius: 8px;
-            font-weight: 500;
-        }}
-        
-        .streamlit-expanderHeader:hover {{
-            background: rgba(99, 102, 241, 0.1);
-        }}
-        
-        /* Compact order rows */
-        p {{
-            margin-bottom: 0.3rem !important;
-            line-height: 1.5 !important;
-        }}
-        
-        /* Reduce spacing */
-        .stCheckbox {{
-            margin-bottom: 0 !important;
-            padding: 0.2rem 0 !important;
-        }}
-        
-        .stTextInput {{
-            margin-bottom: 0 !important;
-        }}
-        
-        .stTextInput > div > div > input {{
-            font-size: 0.9rem !important;
-        }}
-        
-        .stButton > button {{
-            font-size: 0.9rem !important;
-            min-height: 36px !important;
-        }}
-        
-        [data-testid="column"] {{
-            padding: 0.4rem 0.6rem !important;
-        }}
-        
-        /* Scrollbar - Custom dark theme */
-        ::-webkit-scrollbar {{
-            width: 10px;
-            height: 10px;
-        }}
-        
-        ::-webkit-scrollbar-track {{
-            background: rgba(15, 23, 42, 0.5);
-        }}
-        
-        ::-webkit-scrollbar-thumb {{
-            background: rgba(99, 102, 241, 0.3);
-            border-radius: 5px;
-        }}
-        
-        ::-webkit-scrollbar-thumb:hover {{
-            background: rgba(99, 102, 241, 0.5);
-        }}
-        
-        /* Selection color */
-        ::selection {{
-            background: rgba(99, 102, 241, 0.3);
-            color: #f1f5f9;
-        }}
-        
-        /* Data tables */
-        .stDataFrame {{
-            background: rgba(30, 41, 59, 0.5);
-            border-radius: 12px;
-            border: 1px solid rgba(99, 102, 241, 0.1);
-        }}
-        
-        /* Tooltips */
-        .stTooltipIcon {{
-            color: #6366f1;
-        }}
+        ::-webkit-scrollbar {{ width: 10px; }}
+        ::-webkit-scrollbar-track {{ background: rgba(0, 0, 0, 0.5); }}
+        ::-webkit-scrollbar-thumb {{ background: rgba(30, 58, 138, 0.5); border-radius: 5px; }}
+        ::-webkit-scrollbar-thumb:hover {{ background: {primary}; }}
     </style>
-    """, unsafe_allow_html=True)
     """, unsafe_allow_html=True)
 
 # ============================================================================
