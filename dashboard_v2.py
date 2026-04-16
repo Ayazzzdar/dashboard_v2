@@ -248,6 +248,8 @@ if 'total_processed_today' not in st.session_state:
     st.session_state.total_processed_today = 0
 if 'selected_orders' not in st.session_state:
     st.session_state.selected_orders = []
+if 'order_notes' not in st.session_state:
+    st.session_state.order_notes = {}
 if 'api_credentials' not in st.session_state:
     st.session_state.api_credentials = {
         'shopify_store': '',
@@ -1523,7 +1525,7 @@ def main():
                     edit_key = f"edit_{item_key}"
                     is_editing = st.session_state.get(edit_key, False)
                     
-                    col1, col2, col3, col4, col5 = st.columns([1, 2, 2, 2, 1])
+                    col1, col2, col3, col4, col5, col6 = st.columns([0.8, 2, 1.5, 1.5, 0.7, 2])
                     
                     with col1:
                         # Show order number (add suffix if multiple items)
@@ -1617,6 +1619,22 @@ def main():
                                 # Exit edit mode
                                 st.session_state[edit_key] = False
                                 st.rerun()
+                    
+                    with col6:
+                        # Internal notes - only for first item of each order
+                        if item_idx == 0:
+                            note_value = st.session_state.order_notes.get(order['name'], "")
+                            note = st.text_input(
+                                "Internal Notes",
+                                value=note_value,
+                                key=f"note_{order['name']}",
+                                placeholder="Notes (won't be processed)",
+                                label_visibility="collapsed",
+                                help="Internal notes - only visible in dashboard, never sent to CSV or processing"
+                            )
+                            # Save note to session state
+                            if note != note_value:
+                                st.session_state.order_notes[order['name']] = note
                     
                     # Add a subtle separator between line items from the same order
                     if item_idx < line_item_count - 1:
