@@ -138,6 +138,45 @@ def apply_custom_theme(settings):
         
         /* Compact mode */
         {".stBlock { padding: 0.5rem 0; }" if settings.get('compact_mode') else ""}
+        
+        /* Compact order rows - reduce vertical spacing */
+        .element-container {{
+            margin-bottom: 0.3rem !important;
+        }}
+        
+        /* Make text elements more compact */
+        p {{
+            margin-bottom: 0.3rem !important;
+            line-height: 1.4 !important;
+        }}
+        
+        /* Reduce checkbox padding */
+        .stCheckbox {{
+            margin-bottom: 0 !important;
+            padding: 0.2rem 0 !important;
+        }}
+        
+        /* Compact text input fields */
+        .stTextInput {{
+            margin-bottom: 0 !important;
+        }}
+        
+        .stTextInput > div > div > input {{
+            padding: 0.4rem 0.6rem !important;
+            font-size: 0.9rem !important;
+        }}
+        
+        /* Compact buttons */
+        .stButton > button {{
+            padding: 0.3rem 0.8rem !important;
+            font-size: 0.9rem !important;
+            min-height: 32px !important;
+        }}
+        
+        /* Reduce column spacing */
+        [data-testid="column"] {{
+            padding: 0.3rem 0.5rem !important;
+        }}
     </style>
     """, unsafe_allow_html=True)
 
@@ -1461,8 +1500,8 @@ def main():
                                 if order['name'] in st.session_state.selected_orders:
                                     st.session_state.selected_orders.remove(order['name'])
                         else:
-                            # For subsequent items, just show the label
-                            st.write(display_name)
+                            # For subsequent items, just show the label with compact styling
+                            st.markdown(f"<p style='margin: 0; padding: 0.2rem 0; font-size: 0.9rem;'>{display_name}</p>", unsafe_allow_html=True)
                     
                     with col2:
                         if is_editing:
@@ -1475,11 +1514,11 @@ def main():
                                 label_visibility="collapsed"
                             )
                         else:
-                            # Display mode - show value or "No data"
+                            # Display mode - show value or "No data" with compact styling
                             if full_name:
-                                st.write(f"**{full_name}**")
+                                st.markdown(f"<p style='margin: 0; padding: 0.2rem 0; font-weight: 600;'>{full_name}</p>", unsafe_allow_html=True)
                             else:
-                                st.write("_No data_")
+                                st.markdown("<p style='margin: 0; padding: 0.2rem 0; font-style: italic; opacity: 0.6;'>No data</p>", unsafe_allow_html=True)
                     
                     with col3:
                         if is_editing:
@@ -1492,17 +1531,17 @@ def main():
                                 label_visibility="collapsed"
                             )
                         else:
-                            # Display mode - show value or dash
+                            # Display mode - show value or dash with compact styling
                             if birthday:
-                                st.write(f"🎂 {birthday}")
+                                st.markdown(f"<p style='margin: 0; padding: 0.2rem 0;'>🎂 {birthday}</p>", unsafe_allow_html=True)
                             else:
-                                st.write("—")
+                                st.markdown("<p style='margin: 0; padding: 0.2rem 0;'>—</p>", unsafe_allow_html=True)
                     
                     with col4:
-                        # Only show date for first item of each order
+                        # Only show date for first item of each order with compact styling
                         if item_idx == 0:
                             order_date = datetime.fromisoformat(order['created_at'].replace('Z', '+00:00'))
-                            st.write(f"📅 {order_date.strftime('%b %d, %Y')}")
+                            st.markdown(f"<p style='margin: 0; padding: 0.2rem 0;'>📅 {order_date.strftime('%b %d, %Y')}</p>", unsafe_allow_html=True)
                         else:
                             st.write("")  # Empty for subsequent items
                     
@@ -1535,11 +1574,11 @@ def main():
                     
                     # Add a subtle separator between line items from the same order
                     if item_idx < line_item_count - 1:
-                        st.markdown("---")
+                        st.markdown("<div style='border-bottom: 1px dashed #333; margin: 0.3rem 0;'></div>", unsafe_allow_html=True)
                 
                 # Add a stronger separator between different orders
                 if idx < len(filtered[:st.session_state.settings.get('items_per_page', 20)]) - 1:
-                    st.markdown("<hr style='border-top: 2px solid #444'>", unsafe_allow_html=True)
+                    st.markdown("<div style='border-bottom: 1px solid #555; margin: 0.8rem 0;'></div>", unsafe_allow_html=True)
         
         else:
             st.info("Click 'Refresh Orders' to load unfulfilled orders")
