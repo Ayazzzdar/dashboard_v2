@@ -249,7 +249,16 @@ if 'total_processed_today' not in st.session_state:
 if 'selected_orders' not in st.session_state:
     st.session_state.selected_orders = []
 if 'order_notes' not in st.session_state:
-    st.session_state.order_notes = {}
+    # Load notes from persistent file
+    notes_file = 'order_notes.json'
+    if os.path.exists(notes_file):
+        try:
+            with open(notes_file, 'r') as f:
+                st.session_state.order_notes = json.load(f)
+        except:
+            st.session_state.order_notes = {}
+    else:
+        st.session_state.order_notes = {}
 if 'api_credentials' not in st.session_state:
     st.session_state.api_credentials = {
         'shopify_store': '',
@@ -1670,9 +1679,15 @@ def main():
                                 label_visibility="collapsed",
                                 help="Internal notes - only visible in dashboard, never sent to CSV or processing"
                             )
-                            # Save note to session state
+                            # Save note to session state AND to file
                             if note != note_value:
                                 st.session_state.order_notes[order['name']] = note
+                                # Save to persistent file
+                                try:
+                                    with open('order_notes.json', 'w') as f:
+                                        json.dump(st.session_state.order_notes, f)
+                                except:
+                                    pass  # Silently fail if can't write
                     
                     # Close the background div if it was opened
                     if has_notes and item_idx == 0:
