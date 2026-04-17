@@ -605,7 +605,7 @@ def render_settings_page():
             "Items Per Page",
             min_value=5,
             max_value=100,
-            value=settings.get('items_per_page', 20),
+            value=settings.get('items_per_page', 50),
             help="Number of orders to show per page"
         )
         settings['items_per_page'] = items_per_page
@@ -1508,7 +1508,7 @@ def main():
             st.markdown("---")
             
             # Order list - show each line item as a separate row
-            for idx, order in enumerate(filtered[:st.session_state.settings.get('items_per_page', 20)]):
+            for idx, order in enumerate(filtered[:st.session_state.settings.get('items_per_page', 50)]):
                 # Get number of line items in this order
                 line_item_count = get_line_item_count(order)
                 
@@ -1524,6 +1524,18 @@ def main():
                     item_key = f"{order['name']}_item{item_idx}"
                     edit_key = f"edit_{item_key}"
                     is_editing = st.session_state.get(edit_key, False)
+                    
+                    # Check if this order has notes (only check on first item)
+                    has_notes = False
+                    if item_idx == 0:
+                        has_notes = bool(st.session_state.order_notes.get(order['name'], "").strip())
+                    
+                    # Apply background color if notes exist
+                    if has_notes and item_idx == 0:
+                        st.markdown(
+                            f"<div style='background-color: #1F2937; padding: 0.8rem; border-radius: 6px; margin: 0.3rem 0;'>",
+                            unsafe_allow_html=True
+                        )
                     
                     col1, col2, col3, col4, col5, col6 = st.columns([0.8, 2, 1.5, 1.5, 0.7, 2])
                     
@@ -1636,12 +1648,16 @@ def main():
                             if note != note_value:
                                 st.session_state.order_notes[order['name']] = note
                     
+                    # Close the background div if it was opened
+                    if has_notes and item_idx == 0:
+                        st.markdown("</div>", unsafe_allow_html=True)
+                    
                     # Add a subtle separator between line items from the same order
                     if item_idx < line_item_count - 1:
                         st.markdown("<div style='border-bottom: 1px dashed #333; margin: 0.3rem 0;'></div>", unsafe_allow_html=True)
                 
                 # Add a stronger separator between different orders
-                if idx < len(filtered[:st.session_state.settings.get('items_per_page', 20)]) - 1:
+                if idx < len(filtered[:st.session_state.settings.get('items_per_page', 50)]) - 1:
                     st.markdown("<div style='border-bottom: 1px solid #555; margin: 0.8rem 0;'></div>", unsafe_allow_html=True)
         
         else:
