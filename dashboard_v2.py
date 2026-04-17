@@ -1126,14 +1126,84 @@ Top 10 boys and girls names in Australia for {year}
 FINAL CHECKLIST BEFORE SUBMITTING
 ═══════════════════════════════════════════════════════
 
-Ask yourself:
-□ Are ALL 3 celebrities REALLY born on {month_name} {day}?
-□ Did ALL 4 historical events REALLY happen on {month_name} {day}?
-□ Are ALL sports winners the ACTUAL winners for {year}?
-□ Do ALL prices reflect {year} (not modern prices)?
-□ Is the PM/Monarch correct for {year}?
+MANDATORY SELF-VERIFICATION - DO NOT SKIP:
 
-If ANY answer is "I'm not sure", go back and verify that field.
+1. CELEBRITY BIRTHDATE VERIFICATION:
+   □ Celebrity1: Born on {month_name} {day}? (Check: NOT {month_name} {day-1} or {day+1})
+   □ Celebrity2: Born on {month_name} {day}? (Different person from Celebrity1?)
+   □ Celebrity3: Born on {month_name} {day}? (Different from 1 and 2?)
+   □ All 3 celebrities are REAL, verifiable people?
+   □ Format: "Name - Description" (NO birth year included)?
+
+2. STAR SIGN ACCURACY:
+   □ Does the star sign match {month_name} {day}?
+   □ Common mistakes to avoid:
+     - Aries: March 21-April 19 (NOT April 20+)
+     - Taurus: April 20-May 20 (NOT May 21+)
+     - Gemini: May 21-June 20 (NOT June 21+)
+     - Cancer: June 21-July 22
+     - Leo: July 23-August 22
+     - Virgo: August 23-September 22
+     - Libra: September 23-October 22
+     - Scorpio: October 23-November 21
+     - Sagittarius: November 22-December 21
+     - Capricorn: December 22-January 19
+     - Aquarius: January 20-February 18
+     - Pisces: February 19-March 20
+
+3. HISTORICAL EVENTS DATE VERIFICATION:
+   □ Event1: Happened on {month_name} {day} in 1800s?
+   □ Event2: Happened on {month_name} {day} in early 1900s?
+   □ Event3: Happened on {month_name} {day} in mid-late 1900s?
+   □ Event4: Happened on {month_name} {day} in 2000s-2020s?
+   □ All events are 20-30 words (full sentences)?
+   □ Each event is from a DIFFERENT era?
+
+4. AUSTRALIAN CURRENCY VERIFICATION:
+   □ ALL prices in Australian dollars ($) or cents (c)?
+   □ NO British pounds (£), shillings (s), or pence (d)?
+   □ Pre-1966 prices converted to decimal?
+   □ Prices realistic for {year}?
+   □ Examples checked:
+     - 1940s salary: $300-500 (NOT $3,000)
+     - 1960s house: $5,000-10,000 (NOT $50,000)
+     - 1980s salary: $10,000-20,000 (NOT $100,000)
+
+5. SPORTS WINNERS VERIFICATION:
+   □ NRL/AFL winner is actual {year} winner? (NOT the year before or after)
+   □ Australian Open winners are {year} champions?
+   □ Bathurst 1000 winner is {year} race winner?
+   □ Best Actor/Actress won for {year} films?
+
+6. YEAR FORMAT VERIFICATION:
+   □ Year is 4 digits? (e.g., "1943" NOT "43")
+   □ All HistoricalEventDate fields are 4-digit years?
+
+7. NEWS EVENTS VERIFICATION:
+   □ NewsEvent1: Actually happened on {month_name} {day}?
+   □ NewsEvent2: Actually happened on {month_name} {day}?
+   □ NewsEvent3: Actually happened on {month_name} {day}?
+   □ All news events are from the correct DATE (even if different years)?
+
+8. FINAL ACCURACY CHECK:
+   Ask yourself for EACH field:
+   - "Am I 100% CERTAIN this is correct?"
+   - "Have I verified the DATE/YEAR?"
+   - "Is this FACTUALLY accurate?"
+   
+   If ANY answer is "no" or "I'm not sure" → DO NOT include that data!
+   Better to leave it blank than to be wrong!
+
+═══════════════════════════════════════════════════════
+CRITICAL REMINDERS
+═══════════════════════════════════════════════════════
+
+⚠️ WRONG CELEBRITY BIRTHDATES ARE THE #1 ERROR
+⚠️ WRONG HISTORICAL EVENT DATES ARE THE #2 ERROR  
+⚠️ BRITISH CURRENCY IN PRICES IS THE #3 ERROR
+⚠️ 2-DIGIT YEARS INSTEAD OF 4-DIGIT IS THE #4 ERROR
+
+TRIPLE-CHECK these four things above ALL else!
 
 Return ONLY the JSON object. Start with {{ and end with }}."""
 
