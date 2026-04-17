@@ -768,32 +768,58 @@ def get_day_of_week(day: int, month: int, year: int) -> str:
 # ============================================================================
 
 def fetch_shopify_orders(api_token: str, store_url: str) -> List[Dict]:
-    """Fetch orders from Shopify"""
-    url = f"https://{store_url}/admin/api/2024-01/orders.json"
+    """Fetch ALL unfulfilled orders from Shopify using pagination"""
+    base_url = f"https://{store_url}/admin/api/2024-01/orders.json"
     headers = {
         "X-Shopify-Access-Token": api_token,
         "Content-Type": "application/json"
     }
     
-    params = {
-        "status": "any",
-        "limit": 250,
-        "fields": "id,name,email,line_items,fulfillment_status,created_at"
-    }
+    all_orders = []
+    page_info = None
     
-    try:
-        response = requests.get(url, headers=headers, params=params, timeout=30)
+    # Keep fetching until we have all orders
+    while True:
+        params = {
+            "status": "any",
+            "fulfillment_status": "unfulfilled",
+            "limit": 250,
+            "fields": "id,name,email,line_items,fulfillment_status,created_at"
+        }
         
-        if response.status_code != 200:
-            st.error(f"Shopify API Error: {response.status_code}")
-            return []
+        # Add pagination if we have page_info
+        if page_info:
+            params["page_info"] = page_info
         
-        orders = response.json().get("orders", [])
-        return orders
-        
-    except Exception as e:
-        st.error(f"Error fetching orders: {e}")
-        return []
+        try:
+            response = requests.get(base_url, headers=headers, params=params, timeout=30)
+            
+            if response.status_code != 200:
+                st.error(f"Shopify API Error: {response.status_code}")
+                break
+            
+            orders = response.json().get("orders", [])
+            all_orders.extend(orders)
+            
+            # Check if there are more pages
+            link_header = response.headers.get("Link", "")
+            if "rel=\"next\"" in link_header:
+                # Extract page_info from Link header
+                import re
+                match = re.search(r'page_info=([^&>]+)', link_header)
+                if match:
+                    page_info = match.group(1)
+                else:
+                    break
+            else:
+                # No more pages
+                break
+                
+        except Exception as e:
+            st.error(f"Error fetching orders: {e}")
+            break
+    
+    return all_orders
 
 def extract_personalization_data(order: Dict, item_index: int = 0) -> Optional[tuple]:
     """Extract Full Name and Birthday from a specific line item in an order
