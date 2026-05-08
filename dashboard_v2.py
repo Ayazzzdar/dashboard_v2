@@ -1507,20 +1507,135 @@ def main():
     with tab1:
         st.header("Unfulfilled Orders")
         
-        # Fetch orders
-        if st.button("🔄 Refresh Orders", type="primary"):
-            if shopify_store and shopify_token:
-                with st.spinner("Fetching from Shopify..."):
-                    orders = fetch_shopify_orders(shopify_token, shopify_store)
-                    
-                    # Filter unfulfilled
-                    unfulfilled = [o for o in orders if o.get("fulfillment_status") != "fulfilled"]
-                    
-                    # Store
-                    st.session_state.unfulfilled_orders = unfulfilled
-                    st.success(f"Found {len(unfulfilled)} unfulfilled orders")
-            else:
-                st.error("Please enter API credentials in sidebar")
+        # Action buttons
+        col1, col2 = st.columns([1, 1])
+        
+        with col1:
+            # Fetch orders
+            if st.button("🔄 Refresh Orders", type="primary", use_container_width=True):
+                if shopify_store and shopify_token:
+                    with st.spinner("Fetching from Shopify..."):
+                        orders = fetch_shopify_orders(shopify_token, shopify_store)
+                        
+                        # Filter unfulfilled
+                        unfulfilled = [o for o in orders if o.get("fulfillment_status") != "fulfilled"]
+                        
+                        # Store
+                        st.session_state.unfulfilled_orders = unfulfilled
+                        st.success(f"Found {len(unfulfilled)} unfulfilled orders")
+                else:
+                    st.error("Please enter API credentials in sidebar")
+        
+        with col2:
+            # Quick Export Customer Data Only
+            if st.button("📊 Quick Export - Customer Data Only", use_container_width=True):
+                if shopify_store and shopify_token:
+                    with st.spinner("Fetching ALL orders (fulfilled + unfulfilled)..."):
+                        # Fetch ALL orders (not just unfulfilled)
+                        base_url = f"https://{shopify_store}/admin/api/2024-01/orders.json"
+                        headers = {
+                            "X-Shopify-Access-Token": shopify_token,
+                            "Content-Type": "application/json"
+                        }
+                        
+                        all_orders_export = []
+                        page_info_export = None
+                        
+                        # Fetch all orders (both fulfilled and unfulfilled)
+                        while True:
+                            params = {
+                                "status": "any",  # Get all statuses
+                                "limit": 250,
+                                "fields": "id,name,email,line_items,fulfillment_status,created_at"
+                            }
+                            
+                            if page_info_export:
+                                params["page_info"] = page_info_export
+                            
+                            try:
+                                response = requests.get(base_url, headers=headers, params=params, timeout=30)
+                                
+                                if response.status_code != 200:
+                                    st.error(f"Shopify API Error: {response.status_code}")
+                                    break
+                                
+                                orders = response.json().get("orders", [])
+                                all_orders_export.extend(orders)
+                                
+                                # Check pagination
+                                link_header = response.headers.get("Link", "")
+                                if "rel=\"next\"" in link_header:
+                                    import re
+                                    match = re.search(r'page_info=([^&>]+)', link_header)
+                                    if match:
+                                        page_info_export = match.group(1)
+                                    else:
+                                        break
+                                else:
+                                    break
+                            except Exception as e:
+                                st.error(f"Error fetching orders: {e}")
+                                break
+                        
+                        # Extract customer data
+                        customer_data = []
+                        for order in all_orders_export:
+                            order_num = order.get('name', '')
+                            order_email = order.get('email', '')
+                            fulfillment_status = order.get('fulfillment_status', 'unfulfilled')
+                            created_at = order.get('created_at', '')
+                            
+                            # Extract personalization from ALL line items
+                            line_items = order.get("line_items", [])
+                            for idx, item in enumerate(line_items):
+                                full_name = ""
+                                birthday = ""
+                                
+                                properties = item.get("properties", [])
+                                for prop in properties:
+                                    if prop.get("name") == "Full Name":
+                                        full_name = prop.get("value") or ""
+                                    elif prop.get("name") == "Birthday":
+                                        birthday = prop.get("value") or ""
+                                
+                                # Only add if we have personalization data
+                                if full_name or birthday:
+                                    customer_data.append({
+                                        "Order Number": order_num,
+                                        "Customer Email": order_email,
+                                        "Full Name": full_name,
+                                        "Birthday (DOB)": birthday,
+                                        "Fulfillment Status": fulfillment_status,
+                                        "Order Date": created_at.split('T')[0] if created_at else "",
+                                        "Line Item": idx + 1
+                                    })
+                        
+                        if customer_data:
+                            # Create DataFrame
+                            df_export = pd.DataFrame(customer_data)
+                            
+                            # Generate CSV
+                            csv = df_export.to_csv(index=False)
+                            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                            
+                            st.success(f"✅ Exported {len(customer_data)} customer records from {len(all_orders_export)} orders!")
+                            
+                            # Download button
+                            st.download_button(
+                                label="⬇️ Download Customer Data CSV",
+                                data=csv,
+                                file_name=f"customer_data_{timestamp}.csv",
+                                mime="text/csv",
+                                use_container_width=True
+                            )
+                            
+                            # Show preview
+                            with st.expander("📋 Preview Data"):
+                                st.dataframe(df_export, use_container_width=True)
+                        else:
+                            st.warning("No personalization data found in orders")
+                else:
+                    st.error("Please enter Shopify credentials in sidebar")
         
         # Display orders
         if 'unfulfilled_orders' in st.session_state and st.session_state.unfulfilled_orders:
@@ -1951,12 +2066,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
-
-
-
-
-
-
-
