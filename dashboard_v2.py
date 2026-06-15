@@ -1217,7 +1217,7 @@ Return ONLY the JSON object. Start with {{ and end with }}."""
     timeout = st.session_state.settings.get('timeout_duration', 180)
     
     data = {
-        "model": "claude-sonnet-4-20250514",
+        "model": "claude-sonnet-4-6",
         "max_tokens": 8192,  # Maximum allowed for comprehensive, detailed responses
         "temperature": 0.3,  # Lower temperature for more accurate, factual responses
         "messages": [{
@@ -1935,11 +1935,11 @@ def main():
         if st.session_state.error_log:
             st.error(f"**{len(st.session_state.error_log)} errors logged**")
             
-            for error in st.session_state.error_log:
+            for error_idx, error in enumerate(st.session_state.error_log):
                 with st.expander(f"❌ {error['order']} - {error['timestamp'].strftime('%H:%M:%S')}"):
                     st.code(error['error'])
                     
-                    if st.button(f"🔄 Retry {error['order']}", key=f"retry_{error['order']}"):
+                    if st.button(f"🔄 Retry {error['order']}", key=f"retry_{error['order']}_{error_idx}"):
                         st.info("Retry functionality coming soon")
         
         else:
