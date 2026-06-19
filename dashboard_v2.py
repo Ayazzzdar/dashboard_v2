@@ -1614,7 +1614,7 @@ def main():
             st.markdown("---")
             
             # Order list - show each line item as a separate row
-            for idx, order in enumerate(filtered[:st.session_state.settings.get('items_per_page', 50)]):
+            for idx, order in enumerate(filtered):
                 # Get number of line items in this order
                 line_item_count = get_line_item_count(order)
                 
@@ -1769,7 +1769,7 @@ def main():
                         st.markdown("<div style='border-bottom: 1px dashed #333; margin: 0.3rem 0;'></div>", unsafe_allow_html=True)
                 
                 # Add a stronger separator between different orders
-                if idx < len(filtered[:st.session_state.settings.get('items_per_page', 50)]) - 1:
+                if idx < len(filtered) - 1:
                     st.markdown("<div style='border-bottom: 1px solid #555; margin: 0.8rem 0;'></div>", unsafe_allow_html=True)
         
         else:
