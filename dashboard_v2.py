@@ -912,7 +912,7 @@ CRITICAL FORMATTING RULES:
   ⚠️ Convert all pre-1966 prices to approximate Australian dollar equivalents
 - All population values: ONLY the number with units (e.g., "3.3 Billion" or "11.6 million")
 - All percentage values: ONLY the number with % (e.g., "3.2%")
-- Celebrity names: Name - Description (NO DATES, e.g., "Steve Seagal - American actor and martial artist")
+- Celebrity names: "Name - [2-3 word profession]" ONLY. NO DATES. NO extra description, no "known for", no film/show titles. Profession ONLY, 2-3 words, NEVER 1 word. NEVER append "born on this day". Example: "Richard Lewis - Stand-up comedian"
 - News events: Must be events that happened on {month_name} {day} in ANY year (worldwide, not just Australia)
 - Number1Song: If ARIA charts didn't exist in {year}, use worldwide #1 song from that time
 - HISTORICAL EVENTS: Must be events that happened on {month_name} {day} across different eras (1800s, early 1900s, mid 1900s, 2000s)
@@ -926,9 +926,9 @@ Provide accurate Australian historical data in this exact JSON structure:
   "IncomingPM": "Name of the PM who came to power AFTER the current PM (regardless of what year they took office)",
   "Monarch": "Name of British monarch in {year}",
   "AverageSalary": "VALUE ONLY e.g., $2,080",
-  "Celebrity1": "Name - Description (NO DATES). MUST be a celebrity actually BORN on {month_name} {day} (any year). Example: 'Tim Roth - British actor known for Reservoir Dogs'",
-  "Celebrity2": "Name - Description (NO DATES). MUST be a different celebrity actually BORN on {month_name} {day} (any year).",
-  "Celebrity3": "Name - Description (NO DATES). MUST be a third celebrity actually BORN on {month_name} {day} (any year).",
+  "Celebrity1": "Name - [2-3 word profession ONLY, e.g. 'Stand-up comedian']. NO DATES, NO descriptions, NO film/show titles. MUST be a celebrity actually BORN on {month_name} {day} (any year). Example: 'Tim Roth - British actor'",
+  "Celebrity2": "Name - [2-3 word profession ONLY]. NO DATES, NO descriptions. MUST be a different celebrity actually BORN on {month_name} {day} (any year).",
+  "Celebrity3": "Name - [2-3 word profession ONLY]. NO DATES, NO descriptions. MUST be a third celebrity actually BORN on {month_name} {day} (any year).",
   "NewsEvent1": "Major world event that happened on {month_name} {day} in ANY year",
   "NewsEvent2": "Second major world event that happened on {month_name} {day} in ANY year",
   "NewsEvent3": "Third major world event that happened on {month_name} {day} in ANY year",
@@ -1015,6 +1015,7 @@ EXAMPLES OF CORRECT DATES:
 
 USE WORLDWIDE CELEBRITIES - not limited to Australia
 EACH PERSON MUST BE DIFFERENT - no repeats
+FORMAT: "Name - [2-3 word profession]" ONLY. No descriptions, no film titles, no "known for".
 
 ═══════════════════════════════════════════════════════
 HISTORICAL EVENTS - MUST HAVE OCCURRED ON {month_name} {day}
@@ -1217,7 +1218,7 @@ Return ONLY the JSON object. Start with {{ and end with }}."""
     timeout = st.session_state.settings.get('timeout_duration', 180)
     
     data = {
-        "model": "claude-sonnet-4-6",
+        "model": "claude-sonnet-4-20250514",
         "max_tokens": 8192,  # Maximum allowed for comprehensive, detailed responses
         "temperature": 0.3,  # Lower temperature for more accurate, factual responses
         "messages": [{
@@ -1613,7 +1614,7 @@ def main():
             st.markdown("---")
             
             # Order list - show each line item as a separate row
-            for idx, order in enumerate(filtered):
+            for idx, order in enumerate(filtered[:st.session_state.settings.get('items_per_page', 50)]):
                 # Get number of line items in this order
                 line_item_count = get_line_item_count(order)
                 
@@ -1768,7 +1769,7 @@ def main():
                         st.markdown("<div style='border-bottom: 1px dashed #333; margin: 0.3rem 0;'></div>", unsafe_allow_html=True)
                 
                 # Add a stronger separator between different orders
-                if idx < len(filtered) - 1:
+                if idx < len(filtered[:st.session_state.settings.get('items_per_page', 50)]) - 1:
                     st.markdown("<div style='border-bottom: 1px solid #555; margin: 0.8rem 0;'></div>", unsafe_allow_html=True)
         
         else:
@@ -1935,11 +1936,11 @@ def main():
         if st.session_state.error_log:
             st.error(f"**{len(st.session_state.error_log)} errors logged**")
             
-            for error_idx, error in enumerate(st.session_state.error_log):
+            for error in st.session_state.error_log:
                 with st.expander(f"❌ {error['order']} - {error['timestamp'].strftime('%H:%M:%S')}"):
                     st.code(error['error'])
                     
-                    if st.button(f"🔄 Retry {error['order']}", key=f"retry_{error['order']}_{error_idx}"):
+                    if st.button(f"🔄 Retry {error['order']}", key=f"retry_{error['order']}"):
                         st.info("Retry functionality coming soon")
         
         else:
