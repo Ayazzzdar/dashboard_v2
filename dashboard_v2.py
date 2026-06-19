@@ -913,7 +913,7 @@ CRITICAL FORMATTING RULES:
 - All population values: ONLY the number with units (e.g., "3.3 Billion" or "11.6 million")
 - All percentage values: ONLY the number with % (e.g., "3.2%")
 - Celebrity names: "Name - [2-3 word profession]" ONLY. NO DATES. NO extra description, no "known for", no film/show titles. Profession ONLY, 2-3 words, NEVER 1 word. NEVER append "born on this day". Example: "Richard Lewis - Stand-up comedian"
-- News events: Must be events that happened on {month_name} {day} in ANY year (worldwide, not just Australia)
+- News events: Must be events that happened on {month_name} {day} in ANY year (worldwide, not just Australia). MAX 15 WORDS per news event (date prefix "On Month Day, Year" can count toward limit or be excluded). Keep it to ONE short sentence — no multi-clause descriptions.
 - Number1Song: If ARIA charts didn't exist in {year}, use worldwide #1 song from that time
 - HISTORICAL EVENTS: Must be events that happened on {month_name} {day} across different eras (1800s, early 1900s, mid 1900s, 2000s)
   - Look for events on {month_name} {day} in 1800s, early 1900s (1900-1940), mid-late 1900s (1950-1990), and 2000s-2020s
@@ -929,9 +929,9 @@ Provide accurate Australian historical data in this exact JSON structure:
   "Celebrity1": "Name - [2-3 word profession ONLY, e.g. 'Stand-up comedian']. NO DATES, NO descriptions, NO film/show titles. MUST be a celebrity actually BORN on {month_name} {day} (any year). Example: 'Tim Roth - British actor'",
   "Celebrity2": "Name - [2-3 word profession ONLY]. NO DATES, NO descriptions. MUST be a different celebrity actually BORN on {month_name} {day} (any year).",
   "Celebrity3": "Name - [2-3 word profession ONLY]. NO DATES, NO descriptions. MUST be a third celebrity actually BORN on {month_name} {day} (any year).",
-  "NewsEvent1": "Major world event that happened on {month_name} {day} in ANY year",
-  "NewsEvent2": "Second major world event that happened on {month_name} {day} in ANY year",
-  "NewsEvent3": "Third major world event that happened on {month_name} {day} in ANY year",
+  "NewsEvent1": "Major world event that happened on {month_name} {day} in ANY year. MAX 15 WORDS TOTAL. One short sentence only, e.g. 'On July 7, 2005, terrorist bombings struck London's transport system, killing 52 people.'",
+  "NewsEvent2": "Second major world event that happened on {month_name} {day} in ANY year. MAX 15 WORDS TOTAL. One short sentence only.",
+  "NewsEvent3": "Third major world event that happened on {month_name} {day} in ANY year. MAX 15 WORDS TOTAL. One short sentence only.",
   "NRLWinner": "NRL premiership winner {year}",
   "AFLWinner": "AFL premiership winner {year}",
   "BestActor": "Oscar Best Actor {year} - Film name",
