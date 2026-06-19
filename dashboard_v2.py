@@ -1218,7 +1218,7 @@ Return ONLY the JSON object. Start with {{ and end with }}."""
     timeout = st.session_state.settings.get('timeout_duration', 180)
     
     data = {
-        "model": "claude-sonnet-4-20250514",
+        "model": "claude-sonnet-4-6",
         "max_tokens": 8192,  # Maximum allowed for comprehensive, detailed responses
         "temperature": 0.3,  # Lower temperature for more accurate, factual responses
         "messages": [{
