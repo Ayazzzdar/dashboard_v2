@@ -913,7 +913,7 @@ CRITICAL FORMATTING RULES:
 - All population values: ONLY the number with units (e.g., "3.3 Billion" or "11.6 million")
 - All percentage values: ONLY the number with % (e.g., "3.2%")
 - Celebrity names: "Name - [2-3 word profession]" ONLY. NO DATES. NO extra description, no "known for", no film/show titles. Profession ONLY, 2-3 words, NEVER 1 word. NEVER append "born on this day". Example: "Richard Lewis - Stand-up comedian"
-- News events: Must be events that happened on {month_name} {day} in ANY year (worldwide, not just Australia). MAX 15 WORDS per news event (date prefix "On Month Day, Year" can count toward limit or be excluded). Keep it to ONE short sentence — no multi-clause descriptions.
+- News events: Must be events that happened on {month_name} {day} in ANY year (worldwide, not just Australia)
 - Number1Song: If ARIA charts didn't exist in {year}, use worldwide #1 song from that time
 - HISTORICAL EVENTS: Must be events that happened on {month_name} {day} across different eras (1800s, early 1900s, mid 1900s, 2000s)
   - Look for events on {month_name} {day} in 1800s, early 1900s (1900-1940), mid-late 1900s (1950-1990), and 2000s-2020s
@@ -929,14 +929,14 @@ Provide accurate Australian historical data in this exact JSON structure:
   "Celebrity1": "Name - [2-3 word profession ONLY, e.g. 'Stand-up comedian']. NO DATES, NO descriptions, NO film/show titles. MUST be a celebrity actually BORN on {month_name} {day} (any year). Example: 'Tim Roth - British actor'",
   "Celebrity2": "Name - [2-3 word profession ONLY]. NO DATES, NO descriptions. MUST be a different celebrity actually BORN on {month_name} {day} (any year).",
   "Celebrity3": "Name - [2-3 word profession ONLY]. NO DATES, NO descriptions. MUST be a third celebrity actually BORN on {month_name} {day} (any year).",
-  "NewsEvent1": "Major world event that happened on {month_name} {day} in ANY year. MAX 15 WORDS TOTAL. One short sentence only, e.g. 'On July 7, 2005, terrorist bombings struck London's transport system, killing 52 people.'",
-  "NewsEvent2": "Second major world event that happened on {month_name} {day} in ANY year. MAX 15 WORDS TOTAL. One short sentence only.",
-  "NewsEvent3": "Third major world event that happened on {month_name} {day} in ANY year. MAX 15 WORDS TOTAL. One short sentence only.",
+  "NewsEvent1": "Major world event that happened on {month_name} {day} in ANY year",
+  "NewsEvent2": "Second major world event that happened on {month_name} {day} in ANY year",
+  "NewsEvent3": "Third major world event that happened on {month_name} {day} in ANY year",
   "NRLWinner": "NRL premiership winner {year}",
   "AFLWinner": "AFL premiership winner {year}",
   "BestActor": "Oscar Best Actor {year} - Film name",
   "BestActress": "Oscar Best Actress {year} - Film name",
-  "Bathurst1000": "Bathurst 1000 winners {year}",
+  "Bathurst1000": "Exact winning driver(s) of the {year} Bathurst 1000 ONLY - verify against that specific year, do not assume based on a driver's reputation or nearby-year wins. Include all credited drivers (2 or 3, e.g. mid-race car swaps).",
   "AusOpenWinners": "Australian Open singles winners {year}",
   "Number1Song": "Song title - Artist (use ARIA if exists for {year}, otherwise worldwide #1)",
   "AverageHouse": "VALUE ONLY e.g., $8,500",
@@ -1059,7 +1059,10 @@ AFL Winner: Actual {year} VFL/AFL premiership winner
 - 1990+: AFL Grand Final winner
 
 Bathurst 1000: Actual winner(s) of {year} race
-- Include driver names
+- Include driver names (the EXACT pairing/trio that won THAT SPECIFIC year - co-drivers change year to year, do not assume a famous driver's usual teammate)
+- Double check: some years have 3 drivers credited (e.g. due to a mid-race car swap), not always 2
+- Do NOT default to a well-known driver (e.g. Peter Brock, Dick Johnson) just because they are associated with that era - verify they actually won {year} specifically, not a nearby year
+- If unsure, prioritise accuracy over a "plausible sounding" pairing
 
 Australian Open: Singles champions for {year}
 - Format: "Men: [Name], Women: [Name]"
@@ -1173,7 +1176,7 @@ MANDATORY SELF-VERIFICATION - DO NOT SKIP:
 5. SPORTS WINNERS VERIFICATION:
    □ NRL/AFL winner is actual {year} winner? (NOT the year before or after)
    □ Australian Open winners are {year} champions?
-   □ Bathurst 1000 winner is {year} race winner?
+   □ Bathurst 1000 winner is {year} race winner specifically (NOT a nearby year)? Correct driver PAIRING/trio for that exact year (co-drivers change yearly - verify, don't assume)?
    □ Best Actor/Actress won for {year} films?
 
 6. YEAR FORMAT VERIFICATION:
@@ -1218,7 +1221,7 @@ Return ONLY the JSON object. Start with {{ and end with }}."""
     timeout = st.session_state.settings.get('timeout_duration', 180)
     
     data = {
-        "model": "claude-sonnet-4-6",
+        "model": "claude-sonnet-4-20250514",
         "max_tokens": 8192,  # Maximum allowed for comprehensive, detailed responses
         "temperature": 0.3,  # Lower temperature for more accurate, factual responses
         "messages": [{
