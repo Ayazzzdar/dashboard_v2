@@ -932,7 +932,7 @@ Provide accurate Australian historical data in this exact JSON structure:
   "NewsEvent1": "Major world event that happened on {month_name} {day} in ANY year. MAX 15 WORDS TOTAL. One short sentence only, e.g. 'On July 7, 2005, terrorist bombings struck London's transport system, killing 52 people.'",
   "NewsEvent2": "Second major world event that happened on {month_name} {day} in ANY year. MAX 15 WORDS TOTAL. One short sentence only.",
   "NewsEvent3": "Third major world event that happened on {month_name} {day} in ANY year. MAX 15 WORDS TOTAL. One short sentence only.",
-  "NRLWinner": "NRL premiership winner {year}",
+  "NRLWinner": "Exact NRL/NSWRL premiership winner for {year} ONLY - verify the specific year, do not assume a team that was dominant in that decade/era automatically won this exact year. Check the team existed in {year} (e.g. Brisbane Broncos only from 1988+, Melbourne Storm only from 1998+).",
   "AFLWinner": "AFL premiership winner {year}",
   "BestActor": "Oscar Best Actor {year} - Film name",
   "BestActress": "Oscar Best Actress {year} - Film name",
@@ -1053,6 +1053,9 @@ NRL Winner: Use your knowledge of {year} NRL/NSWRL premiership
 - Before 1998: Use NSWRL premiership winner
 - 1998+: Use NRL premiership winner
 - Provide full team name (e.g., "Manly-Warringah Sea Eagles")
+- Do NOT default to a club that dominated that decade/era (e.g. St George's 1956-1966 streak) just because the year falls within that general period - verify the EXACT year, since dynasties end and other teams win in between
+- Verify the team actually existed in {year} - common anachronism traps: Brisbane Broncos (NRL from 1988+ only), Melbourne Storm (1998+ only), Gold Coast Titans (2007+), Newcastle Knights (1988+). Never credit a club for a premiership in a year before it joined the competition
+- If unsure, prioritise accuracy over a "plausible sounding" team for that era
 
 AFL Winner: Actual {year} VFL/AFL premiership winner
 - Before 1990: VFL Grand Final winner
@@ -1174,7 +1177,8 @@ MANDATORY SELF-VERIFICATION - DO NOT SKIP:
      - 1980s salary: $10,000-20,000 (NOT $100,000)
 
 5. SPORTS WINNERS VERIFICATION:
-   □ NRL/AFL winner is actual {year} winner? (NOT the year before or after)
+   □ NRL winner is the exact {year} premiership winner (NOT the year before or after, NOT just a team known for dominating that era)? Did the team exist/compete in {year} (e.g. not Brisbane Broncos pre-1988, not Melbourne Storm pre-1998)?
+   □ AFL winner is the exact {year} premiership winner (NOT the year before or after)?
    □ Australian Open winners are {year} champions?
    □ Bathurst 1000 winner is {year} race winner specifically (NOT a nearby year)? Correct driver PAIRING/trio for that exact year (co-drivers change yearly - verify, don't assume)?
    □ Best Actor/Actress won for {year} films?
